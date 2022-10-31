@@ -1,0 +1,7 @@
+[submodule "external/imgui"]
+	path = external/imgui
+	url = https://github.com/ocornut/imgui.git
+	branch = docking
+[submodule "external/atomic_queue"]
+	path = external/atomic_queue
+	url = https://github.com/max0x7ba/atomic_queue.git
