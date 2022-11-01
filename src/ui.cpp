@@ -63,6 +63,7 @@ bool ui::init() {
 namespace ImGui { extern ImGuiKeyData* GetKeyData(ImGuiKey key); }
 #include <vector>
 #include <string>
+#include <chrono>
 float duration[ImGuiKey_COUNT];
 std::vector<std::string> history;
 char buffer[1024];
@@ -124,7 +125,7 @@ void ui::imgui_windows() {
                 if (ImGui::IsKeyReleased(key)) {
                     ImGui::SameLine();
                     ImGui::Text("\"%s\" %d", ImGui::GetKeyName(key), key);
-                    snprintf(buffer, 1024, "\"%s\" %d (%.02f ms)", ImGui::GetKeyName(key), key, duration[key]);
+                    snprintf(buffer, 1024, "%llu \"%s\" %d (%.02f ms)", std::chrono::system_clock::now().time_since_epoch().count(), ImGui::GetKeyName(key), key, duration[key]);
                     history.emplace_back(buffer);
                 }
             }
