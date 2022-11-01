@@ -67,7 +67,7 @@ target_include_directories(ImGui INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         )
 
-add_executable(${PROJECT_NAME} src/main.cpp src/ui.cpp src/input.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp src/ui.cpp src/input.cpp src/session.cpp)
 target_link_libraries(KeyboardLatencyTester ImGui)
 target_link_libraries(KeyboardLatencyTester Atomic_queue)
 target_link_libraries(${PROJECT_NAME} "d3d12.lib" "dxgi.lib" "d3dcompiler.lib") 

@@ -1,4 +1,5 @@
 #include "ui.hpp"
+#include "session.hpp"
 
 // Forward declarations of helper functions
 bool CreateDeviceD3D(HWND hWnd);
@@ -61,128 +62,43 @@ bool ui::init() {
 }
 
 namespace ImGui { extern ImGuiKeyData* GetKeyData(ImGuiKey key); }
-#include <vector>
-#include <string>
-#include <chrono>
-float duration[ImGuiKey_COUNT];
-std::vector<std::string> history;
-char buffer[1024];
-struct KeyLayoutData { int Row, Col; const char* Label; ImGuiKey Key; };
-const KeyLayoutData keys_to_display[] =
-{
-    { 0, 0, "", ImGuiKey_Tab },      { 0, 1, "Q", ImGuiKey_Q }, { 0, 2, "W", ImGuiKey_W }, { 0, 3, "E", ImGuiKey_E }, { 0, 4, "R", ImGuiKey_R }, { 0, 5, "T", ImGuiKey_T }, { 0, 6, "Y", ImGuiKey_Y }, { 0, 7, "U", ImGuiKey_U }, { 0, 8, "I", ImGuiKey_I }, { 0, 9, "O", ImGuiKey_O }, { 0, 10, "P", ImGuiKey_P }, { 0, 11, "[", ImGuiKey_LeftBracket }, { 0, 12, "]", ImGuiKey_RightBracket }, { 0, 13, "\\", ImGuiKey_Backslash },
-    { 1, 0, "", ImGuiKey_CapsLock }, { 1, 1, "A", ImGuiKey_A }, { 1, 2, "S", ImGuiKey_S }, { 1, 3, "D", ImGuiKey_D }, { 1, 4, "F", ImGuiKey_F }, { 1, 5, "G", ImGuiKey_G }, { 1, 6, "H", ImGuiKey_H }, { 1, 7, "J", ImGuiKey_J }, { 1, 8, "K", ImGuiKey_K }, { 1, 9, "L", ImGuiKey_L }, { 1, 10, ";", ImGuiKey_Semicolon }, { 1, 11, "\'", ImGuiKey_Apostrophe },
-    { 2, 0, "", ImGuiKey_LeftShift },{ 2, 1, "Z", ImGuiKey_Z }, { 2, 2, "X", ImGuiKey_X }, { 2, 3, "C", ImGuiKey_C }, { 2, 4, "V", ImGuiKey_V }, { 2, 5, "B", ImGuiKey_B }, { 2, 6, "N", ImGuiKey_N }, { 2, 7, "M", ImGuiKey_M }, { 2, 8, ",", ImGuiKey_Comma }, { 2, 9, ".", ImGuiKey_Period }, { 2, 10, "/", ImGuiKey_Slash }, 
-};
+#include <unordered_map>
+std::unordered_map<ImGuiKey, session_t> sessions;
 void ui::imgui_windows() {
     // if (show_demo_window)
-        // ImGui::ShowDemoWindow(&show_demo_window);
+    //     ImGui::ShowDemoWindow(&show_demo_window);
 
     {
-        ImGui::Begin("Framerate");                          // Create a window called "Hello, world!" and append into it.
-
+        ImGui::Begin("Framerate", NULL, ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        if (ImGui::Button("Start a new session..."))
+            show_pre_new_session = true;
         ImGui::End();
     }
 
-    {
-        ImGui::Begin("Keys");   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-#ifdef IMGUI_DISABLE_OBSOLETE_KEYIO
-            struct funcs { static bool IsLegacyNativeDupe(ImGuiKey) { return false; } };
-            const ImGuiKey key_first = (ImGuiKey)ImGuiKey_NamedKey_BEGIN;
-#else
-            struct funcs { static bool IsLegacyNativeDupe(ImGuiKey key) { return key < 512 && ImGui::GetIO().KeyMap[key] != -1; } }; // Hide Native<>ImGuiKey duplicates when both exists in the array
-            const ImGuiKey key_first = (ImGuiKey)0;
-            //ImGui::Text("Legacy raw:");       for (ImGuiKey key = key_first; key < ImGuiKey_COUNT; key++) { if (io.KeysDown[key]) { ImGui::SameLine(); ImGui::Text("\"%s\" %d", ImGui::GetKeyName(key), key); } }
-#endif
-            
-            ImGui::Text("Keys down:");
-            for (int i = 0; i < IM_ARRAYSIZE(keys_to_display); i++)
-            {
-                ImGuiKey key = keys_to_display[i].Key;
-                if (funcs::IsLegacyNativeDupe(key)) continue; 
-                if (ImGui::IsKeyDown(key)) {
-                    ImGui::SameLine();
-                    // snprintf("")
-                    duration[key] = ImGui::GetKeyData(key)->DownDuration * 1000.0f;
-                    ImGui::Text("\"%s\" %d (%.02f ms)", ImGui::GetKeyName(key), key, duration[key]);
-                }
-            }
-            // for (ImGuiKey key = key_first; key < ImGuiKey_COUNT; key = (ImGuiKey)(key + 1)) {
-            //     if (funcs::IsLegacyNativeDupe(key)) continue; 
-            //     if (ImGui::IsKeyDown(key)) {
-            //         ImGui::SameLine();
-            //         // snprintf("")
-            //         duration[key] = ImGui::GetKeyData(key)->DownDuration * 1000.0f;
-            //         ImGui::Text("\"%s\" %d (%.02f ms)", ImGui::GetKeyName(key), key, duration[key]);
-            //     }
-            // }
-            ImGui::Text("Keys pressed:");       for (int i = 0; i < IM_ARRAYSIZE(keys_to_display); i++) { ImGuiKey key = keys_to_display[i].Key; if (funcs::IsLegacyNativeDupe(key)) continue; if (ImGui::IsKeyPressed(key)) { ImGui::SameLine(); ImGui::Text("\"%s\" %d", ImGui::GetKeyName(key), key); } }
-            ImGui::Text("Keys released:");
-            for (int i = 0; i < IM_ARRAYSIZE(keys_to_display); i++) {
-                ImGuiKey key = keys_to_display[i].Key;
-                if (funcs::IsLegacyNativeDupe(key)) continue;
-                if (ImGui::IsKeyReleased(key)) {
-                    ImGui::SameLine();
-                    ImGui::Text("\"%s\" %d", ImGui::GetKeyName(key), key);
-                    snprintf(buffer, 1024, "%llu \"%s\" %d (%.02f ms)", std::chrono::system_clock::now().time_since_epoch().count(), ImGui::GetKeyName(key), key, duration[key]);
-                    history.emplace_back(buffer);
-                }
-            }
-        // Draw an arbitrary US keyboard layout to visualize translated keys
-        {
-            const ImVec2 key_size = ImVec2(35.0f, 35.0f);
-            const float  key_rounding = 3.0f;
-            const ImVec2 key_face_size = ImVec2(25.0f, 25.0f);
-            const ImVec2 key_face_pos = ImVec2(5.0f, 3.0f);
-            const float  key_face_rounding = 2.0f;
-            const ImVec2 key_label_pos = ImVec2(7.0f, 4.0f);
-            const ImVec2 key_step = ImVec2(key_size.x - 1.0f, key_size.y - 1.0f);
-            const float  key_row_offset = 9.0f;
-
-            ImVec2 board_min = ImGui::GetCursorScreenPos();
-            ImVec2 board_max = ImVec2(board_min.x + 13 * key_step.x + 12 * key_row_offset + 10.0f, board_min.y + 3 * key_step.y + 10.0f);
-            ImVec2 start_pos = ImVec2(board_min.x + 5.0f - key_step.x, board_min.y);
-
-            
-
-            // Elements rendered manually via ImDrawList API are not clipped automatically.
-            // While not strictly necessary, here IsItemVisible() is used to avoid rendering these shapes when they are out of view.
-            ImGui::Dummy(ImVec2(board_max.x - board_min.x, board_max.y - board_min.y));
-            if (ImGui::IsItemVisible())
-            {
-                ImDrawList* draw_list = ImGui::GetWindowDrawList();
-                draw_list->PushClipRect(board_min, board_max, true);
-                for (int n = 0; n < IM_ARRAYSIZE(keys_to_display); n++)
-                {
-                    const KeyLayoutData* key_data = &keys_to_display[n];
-                    ImVec2 key_min = ImVec2(start_pos.x + key_data->Col * key_step.x + key_data->Row * key_row_offset, start_pos.y + key_data->Row * key_step.y);
-                    ImVec2 key_max = ImVec2(key_min.x + key_size.x, key_min.y + key_size.y);
-                    draw_list->AddRectFilled(key_min, key_max, IM_COL32(204, 204, 204, 255), key_rounding);
-                    draw_list->AddRect(key_min, key_max, IM_COL32(24, 24, 24, 255), key_rounding);
-                    ImVec2 face_min = ImVec2(key_min.x + key_face_pos.x, key_min.y + key_face_pos.y);
-                    ImVec2 face_max = ImVec2(face_min.x + key_face_size.x, face_min.y + key_face_size.y);
-                    draw_list->AddRect(face_min, face_max, IM_COL32(193, 193, 193, 255), key_face_rounding, ImDrawFlags_None, 2.0f);
-                    draw_list->AddRectFilled(face_min, face_max, IM_COL32(252, 252, 252, 255), key_face_rounding);
-                    ImVec2 label_min = ImVec2(key_min.x + key_label_pos.x, key_min.y + key_label_pos.y);
-                    draw_list->AddText(label_min, IM_COL32(64, 64, 64, 255), key_data->Label);
-                    if (ImGui::IsKeyDown(key_data->Key))
-                        draw_list->AddRectFilled(key_min, key_max, IM_COL32(255, 0, 0, 128), key_rounding);
-                }
-                draw_list->PopClipRect();
+    if (show_pre_new_session) {
+        ImGui::Begin("Waiting input...", &show_pre_new_session, ImGuiWindowFlags_AlwaysAutoResize);
+        for (ImGuiKey key = key_first; key < ImGuiKey_COUNT; key = (ImGuiKey)(key + 1)) {
+            if (key == ImGuiKey_MouseWheelX || key == ImGuiKey_MouseWheelY || key == ImGuiKey_MouseLeft) continue;
+            if (funcs::IsLegacyNativeDupe(key)) continue;
+            if (ImGui::IsKeyReleased(key)) {
+                sessions.emplace(key, session_t{key});
+                show_pre_new_session = false;
             }
         }
-        if (ImGui::TreeNode("Activity History"))
-        {
-            if (ImGui::Button("Clear")) {
-                history.clear();
-            }
-            for (auto& item: history) {
-                ImGui::Text(item.c_str());
-            }
-            ImGui::TreePop();
+        ImGui::Text("Press a key to start a session for the key you pressed...");
+        ImGui::Text("For mouse left, click the following button");
+        if (ImGui::Button("New \'MouseLeft\' session...")) {
+            sessions.emplace(ImGuiKey_MouseLeft, session_t{ImGuiKey_MouseLeft});
+            show_pre_new_session = false;
         }
         ImGui::End();
+    }
+
+    for (auto& [key, session]: sessions) {
+        if (!session.process()) {
+            sessions.erase(key);
+        }
     }
 }
 
