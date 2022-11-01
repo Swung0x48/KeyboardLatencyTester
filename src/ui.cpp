@@ -66,23 +66,24 @@ namespace ImGui { extern ImGuiKeyData* GetKeyData(ImGuiKey key); }
 float duration[ImGuiKey_COUNT];
 std::vector<std::string> history;
 char buffer[1024];
+struct KeyLayoutData { int Row, Col; const char* Label; ImGuiKey Key; };
+const KeyLayoutData keys_to_display[] =
+{
+    { 0, 0, "", ImGuiKey_Tab },      { 0, 1, "Q", ImGuiKey_Q }, { 0, 2, "W", ImGuiKey_W }, { 0, 3, "E", ImGuiKey_E }, { 0, 4, "R", ImGuiKey_R }, { 0, 5, "T", ImGuiKey_T }, { 0, 6, "Y", ImGuiKey_Y }, { 0, 7, "U", ImGuiKey_U }, { 0, 8, "I", ImGuiKey_I }, { 0, 9, "O", ImGuiKey_O }, { 0, 10, "P", ImGuiKey_P }, { 0, 11, "[", ImGuiKey_LeftBracket }, { 0, 12, "]", ImGuiKey_RightBracket }, { 0, 13, "\\", ImGuiKey_Backslash },
+    { 1, 0, "", ImGuiKey_CapsLock }, { 1, 1, "A", ImGuiKey_A }, { 1, 2, "S", ImGuiKey_S }, { 1, 3, "D", ImGuiKey_D }, { 1, 4, "F", ImGuiKey_F }, { 1, 5, "G", ImGuiKey_G }, { 1, 6, "H", ImGuiKey_H }, { 1, 7, "J", ImGuiKey_J }, { 1, 8, "K", ImGuiKey_K }, { 1, 9, "L", ImGuiKey_L }, { 1, 10, ";", ImGuiKey_Semicolon }, { 1, 11, "\'", ImGuiKey_Apostrophe },
+    { 2, 0, "", ImGuiKey_LeftShift },{ 2, 1, "Z", ImGuiKey_Z }, { 2, 2, "X", ImGuiKey_X }, { 2, 3, "C", ImGuiKey_C }, { 2, 4, "V", ImGuiKey_V }, { 2, 5, "B", ImGuiKey_B }, { 2, 6, "N", ImGuiKey_N }, { 2, 7, "M", ImGuiKey_M }, { 2, 8, ",", ImGuiKey_Comma }, { 2, 9, ".", ImGuiKey_Period }, { 2, 10, "/", ImGuiKey_Slash }, 
+};
 void ui::imgui_windows() {
-    // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
     // if (show_demo_window)
         // ImGui::ShowDemoWindow(&show_demo_window);
 
-    // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
     {
-    //     static float f = 0.0f;
-    //     static int counter = 0;
-
         ImGui::Begin("Framerate");                          // Create a window called "Hello, world!" and append into it.
 
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::End();
     }
 
-    // 3. Show another simple window.
     {
         ImGui::Begin("Keys");   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
 #ifdef IMGUI_DISABLE_OBSOLETE_KEYIO
@@ -95,23 +96,35 @@ void ui::imgui_windows() {
 #endif
             
             ImGui::Text("Keys down:");
-            for (ImGuiKey key = key_first; key < ImGuiKey_COUNT; key = (ImGuiKey)(key + 1)) {
+            for (int i = 0; i < IM_ARRAYSIZE(keys_to_display); i++)
+            {
+                ImGuiKey key = keys_to_display[i].Key;
                 if (funcs::IsLegacyNativeDupe(key)) continue; 
                 if (ImGui::IsKeyDown(key)) {
                     ImGui::SameLine();
                     // snprintf("")
-                    duration[key] = ImGui::GetKeyData(key)->DownDuration;
-                    ImGui::Text("\"%s\" %d (%.02f secs)", ImGui::GetKeyName(key), key, duration[key]);
+                    duration[key] = ImGui::GetKeyData(key)->DownDuration * 1000.0f;
+                    ImGui::Text("\"%s\" %d (%.02f ms)", ImGui::GetKeyName(key), key, duration[key]);
                 }
             }
-            ImGui::Text("Keys pressed:");       for (ImGuiKey key = key_first; key < ImGuiKey_COUNT; key = (ImGuiKey)(key + 1)) { if (funcs::IsLegacyNativeDupe(key)) continue; if (ImGui::IsKeyPressed(key)) { ImGui::SameLine(); ImGui::Text("\"%s\" %d", ImGui::GetKeyName(key), key); } }
+            // for (ImGuiKey key = key_first; key < ImGuiKey_COUNT; key = (ImGuiKey)(key + 1)) {
+            //     if (funcs::IsLegacyNativeDupe(key)) continue; 
+            //     if (ImGui::IsKeyDown(key)) {
+            //         ImGui::SameLine();
+            //         // snprintf("")
+            //         duration[key] = ImGui::GetKeyData(key)->DownDuration * 1000.0f;
+            //         ImGui::Text("\"%s\" %d (%.02f ms)", ImGui::GetKeyName(key), key, duration[key]);
+            //     }
+            // }
+            ImGui::Text("Keys pressed:");       for (int i = 0; i < IM_ARRAYSIZE(keys_to_display); i++) { ImGuiKey key = keys_to_display[i].Key; if (funcs::IsLegacyNativeDupe(key)) continue; if (ImGui::IsKeyPressed(key)) { ImGui::SameLine(); ImGui::Text("\"%s\" %d", ImGui::GetKeyName(key), key); } }
             ImGui::Text("Keys released:");
-            for (ImGuiKey key = key_first; key < ImGuiKey_COUNT; key = (ImGuiKey)(key + 1)) {
+            for (int i = 0; i < IM_ARRAYSIZE(keys_to_display); i++) {
+                ImGuiKey key = keys_to_display[i].Key;
                 if (funcs::IsLegacyNativeDupe(key)) continue;
                 if (ImGui::IsKeyReleased(key)) {
                     ImGui::SameLine();
                     ImGui::Text("\"%s\" %d", ImGui::GetKeyName(key), key);
-                    snprintf(buffer, 1024, "\"%s\" %d (%.02f secs)", ImGui::GetKeyName(key), key, duration[key]);
+                    snprintf(buffer, 1024, "\"%s\" %d (%.02f ms)", ImGui::GetKeyName(key), key, duration[key]);
                     history.emplace_back(buffer);
                 }
             }
@@ -127,16 +140,10 @@ void ui::imgui_windows() {
             const float  key_row_offset = 9.0f;
 
             ImVec2 board_min = ImGui::GetCursorScreenPos();
-            ImVec2 board_max = ImVec2(board_min.x + 3 * key_step.x + 2 * key_row_offset + 10.0f, board_min.y + 3 * key_step.y + 10.0f);
+            ImVec2 board_max = ImVec2(board_min.x + 13 * key_step.x + 12 * key_row_offset + 10.0f, board_min.y + 3 * key_step.y + 10.0f);
             ImVec2 start_pos = ImVec2(board_min.x + 5.0f - key_step.x, board_min.y);
 
-            struct KeyLayoutData { int Row, Col; const char* Label; ImGuiKey Key; };
-            const KeyLayoutData keys_to_display[] =
-            {
-                { 0, 0, "", ImGuiKey_Tab },      { 0, 1, "Q", ImGuiKey_Q }, { 0, 2, "W", ImGuiKey_W }, { 0, 3, "E", ImGuiKey_E }, { 0, 4, "R", ImGuiKey_R },
-                { 1, 0, "", ImGuiKey_CapsLock }, { 1, 1, "A", ImGuiKey_A }, { 1, 2, "S", ImGuiKey_S }, { 1, 3, "D", ImGuiKey_D }, { 1, 4, "F", ImGuiKey_F },
-                { 2, 0, "", ImGuiKey_LeftShift },{ 2, 1, "Z", ImGuiKey_Z }, { 2, 2, "X", ImGuiKey_X }, { 2, 3, "C", ImGuiKey_C }, { 2, 4, "V", ImGuiKey_V }
-            };
+            
 
             // Elements rendered manually via ImDrawList API are not clipped automatically.
             // While not strictly necessary, here IsItemVisible() is used to avoid rendering these shapes when they are out of view.
