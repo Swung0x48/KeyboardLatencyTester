@@ -9,6 +9,11 @@ enum class keypress_type_t {
     Release
 };
 
+enum class keystate_t {
+    Pressed,
+    Released
+};
+
 struct record_t {
     keypress_type_t type;
     int64_t timestamp;
@@ -32,8 +37,9 @@ public:
 private:
     bool active = true;
     bool paused = false;
-    int64_t start_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    int64_t start_time = 0;
     ImGuiKey key;
+    keystate_t state;
     std::vector<record_t> records;
 };
 
