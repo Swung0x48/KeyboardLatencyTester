@@ -26,6 +26,7 @@ set(ATOMIC_QUEUE_PUBLIC_HDRS
 add_library(Atomic_queue INTERFACE)
 
 target_sources(Atomic_queue INTERFACE ${ATOMIC_QUEUE_PUBLIC_HDRS})
+
 target_include_directories(Atomic_queue INTERFACE
         $<BUILD_INTERFACE:${ATOMIC_QUEUE_SOURCE_DIR}/include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -43,12 +44,14 @@ target_include_directories(ImGui INTERFACE
         )
 
 set(OUTPUT_NAME_DX12 ${PROJECT_NAME}D3D12)
-add_executable(${OUTPUT_NAME_DX12} src/main.cpp src/ui.cpp src/input.cpp src/session.cpp)
+add_executable(${OUTPUT_NAME_DX12} src/main_d3d12.cpp src/component/session.cpp src/imgui_context.cpp src/imgui_context.hpp)
 target_link_libraries(${OUTPUT_NAME_DX12} ImGui)
 target_link_libraries(${OUTPUT_NAME_DX12} Atomic_queue)
 target_link_libraries(${OUTPUT_NAME_DX12} "d3d12.lib" "dxgi.lib" "d3dcompiler.lib") 
 
 find_package(DirectX11)
-add_executable(dx11test ${IMGUI_SOURCE_DIR}/examples/example_win32_directx11/main.cpp)
-target_link_libraries(dx11test ImGui)
-target_link_libraries(dx11test ${DirectX11_LIBRARY})
+set(OUTPUT_NAME_DX11 ${PROJECT_NAME}D3D11)
+add_executable(${OUTPUT_NAME_DX11} src/main_d3d11.cpp src/component/session.cpp src/imgui_context.cpp src/imgui_context.hpp)
+target_link_libraries(${OUTPUT_NAME_DX11} ImGui)
+target_link_libraries(${OUTPUT_NAME_DX11} Atomic_queue)
+target_link_libraries(${OUTPUT_NAME_DX11} ${DirectX11_LIBRARY})
