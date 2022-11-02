@@ -4,6 +4,10 @@ set (CMAKE_CXX_STANDARD 17)
 set(PROJECT_NAME KeyboardLatencyTester)
 project(${PROJECT_NAME})
 
+set(CMAKE_MODULE_PATH
+  "${CMAKE_CURRENT_LIST_DIR}/buildsystems/cmake"
+)
+
 set(IMGUI_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/external/imgui)
 message(${IMGUI_SOURCE_DIR})
 
@@ -28,36 +32,7 @@ target_include_directories(Atomic_queue INTERFACE
         )
 
 
-# ImGui
-if (EXISTS ${IMGUI_SOURCE_DIR}/imconfig.h)
-    file(RENAME
-            ${IMGUI_SOURCE_DIR}/imconfig.h
-            ${IMGUI_SOURCE_DIR}/imconfig.h.bak)
-endif ()
-
-file(COPY ${CMAKE_CURRENT_LIST_DIR}/imconfig.h DESTINATION ${IMGUI_SOURCE_DIR})
-
-set(IMGUI_PUBLIC_HDRS
-        ${IMGUI_SOURCE_DIR}/imgui.h
-        ${IMGUI_SOURCE_DIR}/imgui_internal.h
-        ${IMGUI_SOURCE_DIR}/imstb_rectpack.h
-        ${IMGUI_SOURCE_DIR}/imstb_textedit.h
-        ${IMGUI_SOURCE_DIR}/imstb_truetype.h
-        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_win32.h
-        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_dx9.h
-        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_dx12.h
-        )
-
-set(IMGUI_SRCS
-        ${IMGUI_SOURCE_DIR}/imgui.cpp
-        ${IMGUI_SOURCE_DIR}/imgui_draw.cpp
-        ${IMGUI_SOURCE_DIR}/imgui_widgets.cpp
-        ${IMGUI_SOURCE_DIR}/imgui_demo.cpp
-        ${IMGUI_SOURCE_DIR}/imgui_tables.cpp
-        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_win32.cpp
-        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_dx9.cpp
-        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_dx12.cpp
-        )
+find_package(ImGui)
 
 add_library(ImGui INTERFACE)
 target_sources(ImGui INTERFACE ${IMGUI_SRCS} ${IMGUI_PUBLIC_HDRS})
@@ -70,4 +45,16 @@ target_include_directories(ImGui INTERFACE
 add_executable(${PROJECT_NAME} src/main.cpp src/ui.cpp src/input.cpp src/session.cpp)
 target_link_libraries(KeyboardLatencyTester ImGui)
 target_link_libraries(KeyboardLatencyTester Atomic_queue)
-target_link_libraries(${PROJECT_NAME} "d3d12.lib" "dxgi.lib" "d3dcompiler.lib") 
+target_link_libraries(${PROJECT_NAME} "d3d12.lib" "dxgi.lib" "d3dcompiler.lib" 
+                                        # "d3d11.lib" "dxguid.lib" "d2d1.lib" "dwrite.lib" "winmm.lib"
+                                        ) 
+
+find_package(DirectX11)
+# target_include_directories(ImGui INTERFACE
+#         $<BUILD_INTERFACE:${DirectX11_INCLUDE_DIRS}>
+#         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+#         )
+
+add_executable(dx11test ${IMGUI_SOURCE_DIR}/examples/example_win32_directx11/main.cpp)
+target_link_libraries(dx11test ImGui)
+target_link_libraries(dx11test ${DirectX11_LIBRARY})
