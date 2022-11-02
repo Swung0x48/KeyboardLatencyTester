@@ -31,7 +31,7 @@ struct record_t {
 class session_t {
 public:
     session_t(ImGuiKey key): 
-        key(key) {}
+        key(key), state(ImGui::IsKeyDown(key) ? keystate_t::Pressed : keystate_t::Released) {}
     bool process();
     ImGuiKey get_key() { return key; }
 private:

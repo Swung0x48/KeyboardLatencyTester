@@ -1,5 +1,5 @@
 #include "session.hpp"
-
+#include <iostream>
 bool session_t::process() {
     if (!active)
         return false;
@@ -12,6 +12,7 @@ bool session_t::process() {
         ImGui::SameLine();
         ImGui::Checkbox("Paused", &paused);
         if (!paused && !funcs::IsLegacyNativeDupe(key)) {
+            bool down = ImGui::IsKeyDown(key);
             if (ImGui::IsKeyDown(key) && state == keystate_t::Released) {
                 records.emplace_back(record_t{ keypress_type_t::Press, std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - start_time });
                 state = keystate_t::Pressed;
@@ -29,7 +30,7 @@ bool session_t::process() {
                 ImGui::TableSetColumnIndex(0);
                 ImGui::Text(record.type == keypress_type_t::Press ? "Press" : "Release");
                 ImGui::TableSetColumnIndex(1);
-                ImGui::Text("%lf", record.timestamp * 1e-6);
+                ImGui::Text("%lf", record.timestamp * 1e-9);
             }
             ImGui::EndTable();
         }
