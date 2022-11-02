@@ -3,7 +3,7 @@
 #include "imgui_impl_dx11.h"
 #include <d3d11.h>
 #include <tchar.h>
-#include "imgui_context.hpp"
+#include "imcontext.hpp"
 
 // Data
 static ID3D11Device*            g_pd3dDevice = NULL;
@@ -39,8 +39,7 @@ int main(int, char**)
     ::ShowWindow(hwnd, SW_SHOWDEFAULT);
     ::UpdateWindow(hwnd);
 
-    imgui_context context;
-    context.init();
+    imcontext context;
     ImGuiIO& io = ImGui::GetIO(); (void)io;
 
     // Setup Platform/Renderer backends
@@ -91,7 +90,6 @@ int main(int, char**)
     // Cleanup
     ImGui_ImplDX11_Shutdown();
     ImGui_ImplWin32_Shutdown();
-    ImGui::DestroyContext();
 
     CleanupDeviceD3D();
     ::DestroyWindow(hwnd);

@@ -12,7 +12,6 @@ bool session_t::process() {
         ImGui::SameLine();
         ImGui::Checkbox("Paused", &paused);
         if (!paused && !funcs::IsLegacyNativeDupe(key)) {
-            bool down = ImGui::IsKeyDown(key);
             if (ImGui::IsKeyDown(key) && state == keystate_t::Released) {
                 records.emplace_back(record_t{ keypress_type_t::Press, std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - start_time });
                 state = keystate_t::Pressed;

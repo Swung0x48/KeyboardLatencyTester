@@ -5,3 +5,6 @@
 [submodule "external/atomic_queue"]
 	path = external/atomic_queue
 	url = https://github.com/max0x7ba/atomic_queue.git
+[submodule "external/implot"]
+	path = external/implot
+	url = https://github.com/epezent/implot.git

@@ -9,7 +9,7 @@ set(CMAKE_MODULE_PATH
 )
 
 set(IMGUI_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/external/imgui)
-message(${IMGUI_SOURCE_DIR})
+set(IMPLOT_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/external/implot)
 
 set(ATOMIC_QUEUE_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/external/atomic_queue)
 
@@ -34,24 +34,19 @@ target_include_directories(Atomic_queue INTERFACE
 
 
 find_package(ImGui)
-
-add_library(ImGui INTERFACE)
-target_sources(ImGui INTERFACE ${IMGUI_SRCS} ${IMGUI_PUBLIC_HDRS})
-target_include_directories(ImGui INTERFACE
-        $<BUILD_INTERFACE:${IMGUI_SOURCE_DIR}>
-        $<BUILD_INTERFACE:${IMGUI_SOURCE_DIR}/backends>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        )
+find_package(ImPlot)
 
 set(OUTPUT_NAME_DX12 ${PROJECT_NAME}D3D12)
-add_executable(${OUTPUT_NAME_DX12} src/main_d3d12.cpp src/component/session.cpp src/imgui_context.cpp src/imgui_context.hpp)
+add_executable(${OUTPUT_NAME_DX12} src/main_d3d12.cpp src/component/session.cpp src/imcontext.cpp src/imcontext.hpp)
 target_link_libraries(${OUTPUT_NAME_DX12} ImGui)
+target_link_libraries(${OUTPUT_NAME_DX12} ImPlot)
 target_link_libraries(${OUTPUT_NAME_DX12} Atomic_queue)
 target_link_libraries(${OUTPUT_NAME_DX12} "d3d12.lib" "dxgi.lib" "d3dcompiler.lib") 
 
 find_package(DirectX11)
 set(OUTPUT_NAME_DX11 ${PROJECT_NAME}D3D11)
-add_executable(${OUTPUT_NAME_DX11} src/main_d3d11.cpp src/component/session.cpp src/imgui_context.cpp src/imgui_context.hpp)
+add_executable(${OUTPUT_NAME_DX11} src/main_d3d11.cpp src/component/session.cpp src/imcontext.cpp src/imcontext.hpp src/component/dashboard.cpp src/component/dashboard.hpp)
 target_link_libraries(${OUTPUT_NAME_DX11} ImGui)
+target_link_libraries(${OUTPUT_NAME_DX11} ImPlot)
 target_link_libraries(${OUTPUT_NAME_DX11} Atomic_queue)
 target_link_libraries(${OUTPUT_NAME_DX11} ${DirectX11_LIBRARY})

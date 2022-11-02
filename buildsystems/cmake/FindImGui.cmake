@@ -30,3 +30,11 @@ set(IMGUI_SRCS
         ${IMGUI_SOURCE_DIR}/backends/imgui_impl_dx11.cpp
         ${IMGUI_SOURCE_DIR}/backends/imgui_impl_dx12.cpp
         )
+
+add_library(ImGui INTERFACE)
+target_sources(ImGui INTERFACE ${IMGUI_SRCS} ${IMGUI_PUBLIC_HDRS})
+target_include_directories(ImGui INTERFACE
+        $<BUILD_INTERFACE:${IMGUI_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${IMGUI_SOURCE_DIR}/backends>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        )

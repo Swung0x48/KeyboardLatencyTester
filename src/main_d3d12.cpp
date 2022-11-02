@@ -14,7 +14,7 @@
 #pragma comment(lib, "dxguid.lib")
 #endif
 
-#include "imgui_context.hpp"
+#include "imcontext.hpp"
 
 struct FrameContext
 {
@@ -71,8 +71,7 @@ int main(int argc, char** argv)
     ::ShowWindow(hwnd, SW_SHOWDEFAULT);
     ::UpdateWindow(hwnd);
 
-    imgui_context context;
-    context.init();
+    imcontext context;
 
     ImGuiIO& io = ImGui::GetIO(); (void)io;
 
@@ -153,7 +152,6 @@ int main(int argc, char** argv)
     // Cleanup
     ImGui_ImplDX12_Shutdown();
     ImGui_ImplWin32_Shutdown();
-    ImGui::DestroyContext();
 
     CleanupDeviceD3D();
     ::DestroyWindow(hwnd);
