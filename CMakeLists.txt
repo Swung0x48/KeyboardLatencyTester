@@ -42,19 +42,13 @@ target_include_directories(ImGui INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         )
 
-add_executable(${PROJECT_NAME} src/main.cpp src/ui.cpp src/input.cpp src/session.cpp)
-target_link_libraries(KeyboardLatencyTester ImGui)
-target_link_libraries(KeyboardLatencyTester Atomic_queue)
-target_link_libraries(${PROJECT_NAME} "d3d12.lib" "dxgi.lib" "d3dcompiler.lib" 
-                                        # "d3d11.lib" "dxguid.lib" "d2d1.lib" "dwrite.lib" "winmm.lib"
-                                        ) 
+set(OUTPUT_NAME_DX12 ${PROJECT_NAME}D3D12)
+add_executable(${OUTPUT_NAME_DX12} src/main.cpp src/ui.cpp src/input.cpp src/session.cpp)
+target_link_libraries(${OUTPUT_NAME_DX12} ImGui)
+target_link_libraries(${OUTPUT_NAME_DX12} Atomic_queue)
+target_link_libraries(${OUTPUT_NAME_DX12} "d3d12.lib" "dxgi.lib" "d3dcompiler.lib") 
 
 find_package(DirectX11)
-# target_include_directories(ImGui INTERFACE
-#         $<BUILD_INTERFACE:${DirectX11_INCLUDE_DIRS}>
-#         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-#         )
-
 add_executable(dx11test ${IMGUI_SOURCE_DIR}/examples/example_win32_directx11/main.cpp)
 target_link_libraries(dx11test ImGui)
 target_link_libraries(dx11test ${DirectX11_LIBRARY})
