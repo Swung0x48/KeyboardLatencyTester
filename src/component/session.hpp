@@ -2,6 +2,7 @@
 #define SESSION_HPP
 
 #include "imgui.h"
+#include "implot.h"
 #include <vector>
 #include <chrono>
 enum class keypress_type_t {
@@ -30,10 +31,12 @@ struct record_t {
 
 class session_t {
 public:
-    session_t(ImGuiKey key): 
-        key(key), state(ImGui::IsKeyDown(key) ? keystate_t::Pressed : keystate_t::Released) {}
+    session_t(ImGuiKey key, int64_t init_time):
+        key(key), start_time(init_time), state(ImGui::IsKeyDown(key) ? keystate_t::Pressed : keystate_t::Released) {}
     bool process();
     ImGuiKey get_key() { return key; }
+    record_t get_data_point(int);
+    size_t get_data_point_count() { return records.size(); }
 private:
     bool active = true;
     bool paused = false;

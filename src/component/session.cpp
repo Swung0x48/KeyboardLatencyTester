@@ -38,3 +38,9 @@ bool session_t::process() {
 
     return true;
 }
+
+//#include <iostream>
+record_t session_t::get_data_point(int index) {
+//    std::cout << index << " " << records[index].timestamp * 1e-9 << " " << ((records[index].type == keypress_type_t::Press) ? 1.0 : 0.0) << std::endl;
+    return records[index];
+}

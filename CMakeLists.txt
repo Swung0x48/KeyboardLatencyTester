@@ -45,7 +45,7 @@ target_link_libraries(${OUTPUT_NAME_DX12} "d3d12.lib" "dxgi.lib" "d3dcompiler.li
 
 find_package(DirectX11)
 set(OUTPUT_NAME_DX11 ${PROJECT_NAME}D3D11)
-add_executable(${OUTPUT_NAME_DX11} src/main_d3d11.cpp src/component/session.cpp src/imcontext.cpp src/imcontext.hpp src/component/dashboard.cpp src/component/dashboard.hpp)
+add_executable(${OUTPUT_NAME_DX11} src/main_d3d11.cpp src/component/session.cpp src/imcontext.cpp src/imcontext.hpp)
 target_link_libraries(${OUTPUT_NAME_DX11} ImGui)
 target_link_libraries(${OUTPUT_NAME_DX11} ImPlot)
 target_link_libraries(${OUTPUT_NAME_DX11} Atomic_queue)
