@@ -95,9 +95,11 @@ void ui::imgui_windows() {
         ImGui::End();
     }
 
-    for (auto& [key, session]: sessions) {
-        if (!session.process()) {
-            sessions.erase(key);
+    for (auto it = sessions.begin(); it != sessions.end(); ) {
+        if (!it->second.process()) {
+            it = sessions.erase(it);
+        } else {
+            ++it;
         }
     }
 }
