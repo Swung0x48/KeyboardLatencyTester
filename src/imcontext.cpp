@@ -52,14 +52,18 @@ bool imcontext::update() {
     ImGui::NewFrame();
     {
         ImGui::Begin("Framerate", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::Text("Render average %.3f ms/frame (%.1f fps)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        uint64_t cur_last_time = ::GetMessageTime();
+        if (cur_last_time - last_poll_time != 0) {
+            delta_poll_time_ = (cur_last_time - last_poll_time);
+            last_poll_time = cur_last_time;
+        }
+        ImGui::Text("Polling %.3f ms/op (%.1f ops) %s", delta_poll_time_ * 1.0, 1000.0f / delta_poll_time_, ((cur_last_time - last_poll_time) == 0) ? "(Empty)" : "");
         if (ImGui::Button("Start a new session..."))
             show_pre_new_session = true;
 
         ImGui::Checkbox("Show dashboard", &show_dashboard);
         ImGui::SameLine();
-        if (show_dashboard)
-            ImGui::Checkbox("Auto-scroll", &auto_scroll);
 
         ImGui::End();
     }
@@ -102,8 +106,6 @@ bool imcontext::update() {
         v_min.y += ImGui::GetWindowPos().y;
         v_max.x += ImGui::GetWindowPos().x;
         v_max.y += ImGui::GetWindowPos().y;
-        if (auto_scroll)
-            ImPlot::SetNextAxesToFit();
         if (ImPlot::BeginPlot("Timeline", ImVec2(v_max.x - v_min.x, v_max.y - v_min.y))) {
 //            ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0, ImGuiKey_COUNT);
             for (auto& [key, session]: sessions) {

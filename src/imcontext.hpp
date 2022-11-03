@@ -4,6 +4,7 @@
 #include "implot.h"
 #include <unordered_map>
 #include <src/component/session.hpp>
+#include <windows.h>
 
 namespace ImGui { extern ImGuiKeyData* GetKeyData(ImGuiKey key); }
 
@@ -21,8 +22,9 @@ private:
     bool show_pre_new_session = false;
     bool show_keys = true;
     bool show_dashboard = true;
-    bool auto_scroll = true;
     static inline int64_t init_time;
+    static inline int64_t last_poll_time;
+    static inline int64_t delta_poll_time_;
 };
 
 
