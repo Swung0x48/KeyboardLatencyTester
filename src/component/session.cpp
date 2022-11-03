@@ -7,6 +7,8 @@ bool session_t::process() {
         ImGui::Begin(ImGui::GetKeyName(key_), &active_);
         if (ImGui::Button("Clear")) {
             records_.clear();
+            press_count = 0;
+            release_count = 0;
         }
         ImGui::SameLine();
         ImGui::Checkbox("Paused", &paused_);
@@ -22,15 +24,25 @@ bool session_t::process() {
             ImGui::EndCombo();
         }
 
+        {
+            ImGui::Text("Press: %d", press_count);
+            ImGui::SameLine();
+            ImGui::Text("Release: %d", release_count);
+            ImGui::SameLine();
+            ImGui::Text("Total: %llu", records_.size());
+        }
+
 
         if (!paused_ && !funcs::IsLegacyNativeDupe(key_)) {
             if (ImGui::IsKeyDown(key_) && state_ == keystate_t::Released) {
                 records_.emplace_back(record_t{keypress_type_t::Press, std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - start_time_ });
                 state_ = keystate_t::Pressed;
+                ++press_count;
             }
             if (!ImGui::IsKeyDown(key_) && state_ == keystate_t::Pressed) {
                 records_.emplace_back(record_t{keypress_type_t::Release, std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - start_time_ });
                 state_ = keystate_t::Released;
+                ++release_count;
             }
         }
 
