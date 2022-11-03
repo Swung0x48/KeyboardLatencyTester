@@ -33,7 +33,7 @@ ImPlotPoint imcontext::data_point_getter(int index, void* opaque) {
 
     if (session->get_data_point_count() * 2 == index) { // refers to current
         return {
-            1e-9 * (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - init_time),
+            1e-6 * (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - init_time),
             (session->get_state() == keystate_t::Released) ? y : 0.0
         };
     }
@@ -45,7 +45,7 @@ ImPlotPoint imcontext::data_point_getter(int index, void* opaque) {
     if ((is_new_state && point.type == keypress_type_t::Press) || (!is_new_state) && point.type == keypress_type_t::Release) {
         y = 0.0;
     }
-    return { point.timestamp * 1e-9, y };
+    return { point.timestamp * 1e-6, y };
 }
 
 bool imcontext::update() {
@@ -53,17 +53,12 @@ bool imcontext::update() {
     {
         ImGui::Begin("Framerate", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::Text("Render average %.3f ms/frame (%.1f fps)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        uint64_t cur_last_time = ::GetMessageTime();
-        if (cur_last_time - last_poll_time != 0) {
-            delta_poll_time_ = (cur_last_time - last_poll_time);
-            last_poll_time = cur_last_time;
-        }
-        ImGui::Text("Polling %.3f ms/op (%.1f ops) %s", delta_poll_time_ * 1.0, 1000.0f / delta_poll_time_, ((cur_last_time - last_poll_time) == 0) ? "(Empty)" : "");
         if (ImGui::Button("Start a new session..."))
             show_pre_new_session = true;
 
         ImGui::Checkbox("Show dashboard", &show_dashboard);
         ImGui::SameLine();
+        ImGui::Checkbox("Real-time mode", &realtime_mode);
 
         ImGui::End();
     }
@@ -107,10 +102,12 @@ bool imcontext::update() {
         v_max.x += ImGui::GetWindowPos().x;
         v_max.y += ImGui::GetWindowPos().y;
         if (ImPlot::BeginPlot("Timeline", ImVec2(v_max.x - v_min.x, v_max.y - v_min.y))) {
-//            ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0, ImGuiKey_COUNT);
             for (auto& [key, session]: sessions) {
-                // The last index refers to the current state
-                ImPlot::PlotLineG(ImGui::GetKeyName(key), data_point_getter, &session, session.get_data_point_count() * 2 + 1);
+                // The last index refers to the current('real-time') state
+                ImPlot::PlotLineG(ImGui::GetKeyName(key),
+                                  data_point_getter,
+                                  &session,
+                                  session.get_data_point_count() * 2 + ((realtime_mode && !session.is_paused()) ? 1 : 0));
             }
             ImPlot::EndPlot();
         }

@@ -1,5 +1,4 @@
 #include "session.hpp"
-#include <iostream>
 bool session_t::process() {
     if (!active)
         return false;
@@ -29,7 +28,7 @@ bool session_t::process() {
                 ImGui::TableSetColumnIndex(0);
                 ImGui::Text(record.type == keypress_type_t::Press ? "Press" : "Release");
                 ImGui::TableSetColumnIndex(1);
-                ImGui::Text("%lf", record.timestamp * 1e-9);
+                ImGui::Text("%lf", record.timestamp * 1e-6);
             }
             ImGui::EndTable();
         }
@@ -39,8 +38,6 @@ bool session_t::process() {
     return true;
 }
 
-//#include <iostream>
 record_t session_t::get_data_point(int index) {
-//    std::cout << index << " " << records[index].timestamp * 1e-9 << " " << ((records[index].type == keypress_type_t::Press) ? 1.0 : 0.0) << std::endl;
     return records[index];
 }
