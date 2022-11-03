@@ -48,6 +48,7 @@ ImPlotPoint imcontext::data_point_getter(int index, void* opaque) {
     return { point.timestamp * 1e-6, y };
 }
 
+#include <iostream>
 bool imcontext::update() {
     ImGui::NewFrame();
     {
@@ -59,7 +60,11 @@ bool imcontext::update() {
         ImGui::Checkbox("Show dashboard", &show_dashboard);
         ImGui::SameLine();
         ImGui::Checkbox("Real-time mode", &realtime_mode);
-
+        ImGui::Checkbox("Time-window mode", &timewindow_mode);
+        if (timewindow_mode) {
+            ImGui::SameLine();
+            ImGui::InputDouble("ms", &time_window_size);
+        }
         ImGui::End();
     }
 
@@ -108,6 +113,14 @@ bool imcontext::update() {
                 ImPlot::SetupAxisLimits(ImAxis_Y1, -1.0, ImGuiKey_COUNT + 1.0);
                 ImPlot::SetupAxis(ImAxis_Y1, "Keycode * isPressed");
                 ImPlot::SetupAxis(ImAxis_X1, "Time (ms)", ImPlotAxisFlags_AutoFit);
+            }
+
+            if (timewindow_mode)
+            {
+                ImPlot::SetupAxis(ImAxis_X1, "Time (ms)");
+                auto now = (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - init_time);
+                auto begin_time = now - time_window_size * 1e6;
+                ImPlot::SetupAxisLimits(ImAxis_X1, begin_time * 1e-6, now * 1e-6, ImPlotCond_Always);
             }
             for (auto& [key, session]: sessions) {
                 // The last index refers to the current('real-time') state

@@ -50,3 +50,8 @@ target_link_libraries(${OUTPUT_NAME_DX11} ImGui)
 target_link_libraries(${OUTPUT_NAME_DX11} ImPlot)
 target_link_libraries(${OUTPUT_NAME_DX11} Atomic_queue)
 target_link_libraries(${OUTPUT_NAME_DX11} ${DirectX11_LIBRARY})
+
+#add_executable(ImPlotDemo ${IMPLOT_SOURCE_DIR}/implot_demo.cpp)
+#target_link_libraries(ImPlotDemo ImGui)
+#target_link_libraries(ImPlotDemo ImPlot)
+#target_link_libraries(ImPlotDemo ${DirectX11_LIBRARY})
