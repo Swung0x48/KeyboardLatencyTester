@@ -38,7 +38,7 @@ private:
     };
 //    bool realtime_mode = true;
 //    bool timewindow_mode = false;
-    double time_window_size = 1e3;
+    double time_window_size = 10 * 1e3;
     static inline int64_t init_time;
 };
 

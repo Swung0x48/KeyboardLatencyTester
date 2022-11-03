@@ -58,21 +58,23 @@ bool imcontext::update() {
             show_pre_new_session = true;
 
         ImGui::Checkbox("Show dashboard", &show_dashboard);
-        ImGui::SameLine();
-        ImGui::Checkbox("Real-time update", &real_time_update);
-        if (ImGui::BeginCombo("Mode", mode_name.at(mode_).c_str())) {
-            for (const auto& [mode, name]: mode_name) {
-                bool is_selected = (mode == mode_);
-                if (ImGui::Selectable(name.c_str(), is_selected))
-                    mode_ = mode;
-                if (is_selected)
-                    ImGui::SetItemDefaultFocus();
-            }
-            ImGui::EndCombo();
-        }
-        if (mode_ == mode_t::TimeWindow) {
+        if (show_dashboard) {
             ImGui::SameLine();
-            ImGui::InputDouble("ms", &time_window_size);
+            ImGui::Checkbox("Real-time update", &real_time_update);
+            if (ImGui::BeginCombo("Mode", mode_name.at(mode_).c_str())) {
+                for (const auto&[mode, name]: mode_name) {
+                    bool is_selected = (mode == mode_);
+                    if (ImGui::Selectable(name.c_str(), is_selected))
+                        mode_ = mode;
+                    if (is_selected)
+                        ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+            if (mode_ == mode_t::TimeWindow) {
+                ImGui::SameLine();
+                ImGui::InputDouble("ms", &time_window_size);
+            }
         }
         ImGui::End();
     }
@@ -120,18 +122,15 @@ bool imcontext::update() {
             if (first_update_) {
                 first_update_ = false;
                 ImPlot::SetupAxisLimits(ImAxis_Y1, -1.0, ImGuiKey_COUNT + 1.0);
-                ImPlot::SetupAxis(ImAxis_Y1, "Keycode * isPressed");
-                ImPlot::SetupAxis(ImAxis_X1, "Time (ms)");
             }
 
+            ImPlot::SetupAxis(ImAxis_X1, "Time (ms)", (mode_ == mode_t::AutoFit) ? ImPlotAxisFlags_AutoFit : 0);
+            ImPlot::SetupAxis(ImAxis_Y1, "Keycode * isPressed");
             if (mode_ == mode_t::TimeWindow)
             {
-                ImPlot::SetupAxis(ImAxis_X1, "Time (ms)");
                 auto now = (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - init_time);
                 auto begin_time = now - time_window_size * 1e6;
                 ImPlot::SetupAxisLimits(ImAxis_X1, begin_time * 1e-6, now * 1e-6, ImPlotCond_Always);
-            } else if (mode_ == mode_t::AutoFit) {
-                ImPlot::SetupAxis(ImAxis_X1, "Time (ms)", ImPlotAxisFlags_AutoFit);
             }
 
             for (auto& [key, session]: sessions) {
