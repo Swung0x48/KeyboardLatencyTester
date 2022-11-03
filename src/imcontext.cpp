@@ -59,9 +59,18 @@ bool imcontext::update() {
 
         ImGui::Checkbox("Show dashboard", &show_dashboard);
         ImGui::SameLine();
-        ImGui::Checkbox("Real-time mode", &realtime_mode);
-        ImGui::Checkbox("Time-window mode", &timewindow_mode);
-        if (timewindow_mode) {
+        ImGui::Checkbox("Real-time update", &real_time_update);
+        if (ImGui::BeginCombo("Mode", mode_name.at(mode_).c_str())) {
+            for (const auto& [mode, name]: mode_name) {
+                bool is_selected = (mode == mode_);
+                if (ImGui::Selectable(name.c_str(), is_selected))
+                    mode_ = mode;
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
+        if (mode_ == mode_t::TimeWindow) {
             ImGui::SameLine();
             ImGui::InputDouble("ms", &time_window_size);
         }
@@ -112,22 +121,25 @@ bool imcontext::update() {
                 first_update_ = false;
                 ImPlot::SetupAxisLimits(ImAxis_Y1, -1.0, ImGuiKey_COUNT + 1.0);
                 ImPlot::SetupAxis(ImAxis_Y1, "Keycode * isPressed");
-                ImPlot::SetupAxis(ImAxis_X1, "Time (ms)", ImPlotAxisFlags_AutoFit);
+                ImPlot::SetupAxis(ImAxis_X1, "Time (ms)");
             }
 
-            if (timewindow_mode)
+            if (mode_ == mode_t::TimeWindow)
             {
                 ImPlot::SetupAxis(ImAxis_X1, "Time (ms)");
                 auto now = (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - init_time);
                 auto begin_time = now - time_window_size * 1e6;
                 ImPlot::SetupAxisLimits(ImAxis_X1, begin_time * 1e-6, now * 1e-6, ImPlotCond_Always);
+            } else if (mode_ == mode_t::AutoFit) {
+                ImPlot::SetupAxis(ImAxis_X1, "Time (ms)", ImPlotAxisFlags_AutoFit);
             }
+
             for (auto& [key, session]: sessions) {
                 // The last index refers to the current('real-time') state
                 ImPlot::PlotLineG(ImGui::GetKeyName(key),
                                   data_point_getter,
                                   &session,
-                                  session.get_data_point_count() * 2 + ((realtime_mode && !session.is_paused()) ? 1 : 0));
+                                  session.get_data_point_count() * 2 + ((real_time_update && !session.is_paused()) ? 1 : 0));
             }
             ImPlot::EndPlot();
         }

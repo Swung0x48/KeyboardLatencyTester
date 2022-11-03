@@ -8,6 +8,12 @@
 
 namespace ImGui { extern ImGuiKeyData* GetKeyData(ImGuiKey key); }
 
+enum class mode_t {
+    Manual,
+    AutoFit,
+    TimeWindow
+};
+
 class imcontext {
 public:
     imcontext();
@@ -23,8 +29,15 @@ private:
     bool show_pre_new_session = false;
     bool show_keys = true;
     bool show_dashboard = true;
-    bool realtime_mode = true;
-    bool timewindow_mode = false;
+    bool real_time_update = false;
+    mode_t mode_ = mode_t::Manual;
+    const std::unordered_map<mode_t, std::string> mode_name = {
+            { mode_t::Manual, "Manual" },
+            { mode_t::AutoFit, "Auto-fit" },
+            { mode_t::TimeWindow, "Time-window" }
+    };
+//    bool realtime_mode = true;
+//    bool timewindow_mode = false;
     double time_window_size = 1e3;
     static inline int64_t init_time;
 };
