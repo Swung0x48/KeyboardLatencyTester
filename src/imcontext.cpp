@@ -27,12 +27,21 @@ imcontext::imcontext() {
     init_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
-ImPlotPoint data_point_getter(int index, void* opaque) {
+ImPlotPoint imcontext::data_point_getter(int index, void* opaque) {
+    auto* session = static_cast<session_t*>(opaque);
+    double y = (double)session->get_key();
+
+    if (session->get_data_point_count() * 2 == index) { // refers to current
+        return {
+            1e-9 * (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - init_time),
+            (session->get_state() == keystate_t::Released) ? y : 0.0
+        };
+    }
+
     int actual_index = index / 2;
     int is_new_state = index % 2;
-    auto* session = static_cast<session_t*>(opaque);
     auto point = session->get_data_point(actual_index);
-    double y = (double)session->get_key();
+
     if ((is_new_state && point.type == keypress_type_t::Press) || (!is_new_state) && point.type == keypress_type_t::Release) {
         y = 0.0;
     }
@@ -98,7 +107,8 @@ bool imcontext::update() {
         if (ImPlot::BeginPlot("Timeline", ImVec2(v_max.x - v_min.x, v_max.y - v_min.y))) {
 //            ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0, ImGuiKey_COUNT);
             for (auto& [key, session]: sessions) {
-                ImPlot::PlotLineG(ImGui::GetKeyName(key), data_point_getter, &session, session.get_data_point_count() * 2);
+                // The last index refers to the current state
+                ImPlot::PlotLineG(ImGui::GetKeyName(key), data_point_getter, &session, session.get_data_point_count() * 2 + 1);
             }
             ImPlot::EndPlot();
         }

@@ -37,6 +37,7 @@ public:
     ImGuiKey get_key() { return key; }
     record_t get_data_point(int);
     size_t get_data_point_count() { return records.size(); }
+    keystate_t get_state() { return state; }
 private:
     bool active = true;
     bool paused = false;

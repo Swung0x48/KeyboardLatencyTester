@@ -14,6 +14,7 @@ public:
     ~imcontext();
     const ImVec4 background_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 private:
+    static ImPlotPoint imcontext::data_point_getter(int index, void* opaque);
     std::unordered_map<ImGuiKey, session_t> sessions;
 
     bool show_demo_window = true;
@@ -21,7 +22,7 @@ private:
     bool show_keys = true;
     bool show_dashboard = true;
     bool auto_scroll = true;
-    int64_t init_time;
+    static inline int64_t init_time;
 };
 
 
