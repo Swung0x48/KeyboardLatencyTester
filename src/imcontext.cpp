@@ -101,7 +101,15 @@ bool imcontext::update() {
         v_min.y += ImGui::GetWindowPos().y;
         v_max.x += ImGui::GetWindowPos().x;
         v_max.y += ImGui::GetWindowPos().y;
+
+        if (first_update_) {
+            ImPlot::SetNextAxisToFit(ImAxis_X1);
+        }
         if (ImPlot::BeginPlot("Timeline", ImVec2(v_max.x - v_min.x, v_max.y - v_min.y))) {
+            if (first_update_) {
+                first_update_ = false;
+                ImPlot::SetupAxisLimits(ImAxis_Y1, -1.0, ImGuiKey_COUNT + 1.0);
+            }
             for (auto& [key, session]: sessions) {
                 // The last index refers to the current('real-time') state
                 ImPlot::PlotLineG(ImGui::GetKeyName(key),

@@ -18,6 +18,7 @@ private:
     static ImPlotPoint imcontext::data_point_getter(int index, void* opaque);
     std::unordered_map<ImGuiKey, session_t> sessions;
 
+    bool first_update_ = true;
     bool show_demo_window = true;
     bool show_pre_new_session = false;
     bool show_keys = true;
