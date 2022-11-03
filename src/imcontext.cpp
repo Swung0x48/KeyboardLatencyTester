@@ -46,8 +46,12 @@ bool imcontext::update() {
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         if (ImGui::Button("Start a new session..."))
             show_pre_new_session = true;
-        ImGui::SameLine();
+
         ImGui::Checkbox("Show dashboard", &show_dashboard);
+        ImGui::SameLine();
+        if (show_dashboard)
+            ImGui::Checkbox("Auto-scroll", &auto_scroll);
+
         ImGui::End();
     }
 
@@ -89,8 +93,10 @@ bool imcontext::update() {
         v_min.y += ImGui::GetWindowPos().y;
         v_max.x += ImGui::GetWindowPos().x;
         v_max.y += ImGui::GetWindowPos().y;
-
+        if (auto_scroll)
+            ImPlot::SetNextAxesToFit();
         if (ImPlot::BeginPlot("Timeline", ImVec2(v_max.x - v_min.x, v_max.y - v_min.y))) {
+//            ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0, ImGuiKey_COUNT);
             for (auto& [key, session]: sessions) {
                 ImPlot::PlotLineG(ImGui::GetKeyName(key), data_point_getter, &session, session.get_data_point_count() * 2);
             }

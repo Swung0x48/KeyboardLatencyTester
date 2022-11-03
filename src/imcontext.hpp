@@ -20,6 +20,7 @@ private:
     bool show_pre_new_session = false;
     bool show_keys = true;
     bool show_dashboard = true;
+    bool auto_scroll = true;
     int64_t init_time;
 };
 
