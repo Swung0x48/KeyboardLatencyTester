@@ -5,6 +5,7 @@
 #include "implot.h"
 #include <vector>
 #include <chrono>
+#include <unordered_map>
 enum class keypress_type_t {
     Press,
     Release
@@ -20,6 +21,12 @@ struct record_t {
     int64_t timestamp;
 };
 
+enum class display_type_t: uint32_t {
+    Pressed = 1,
+    Released = 1 << 2,
+    PressedAndReleased = 1 | (1 << 2)
+};
+
 #ifdef IMGUI_DISABLE_OBSOLETE_KEYIO
     struct funcs { static bool IsLegacyNativeDupe(ImGuiKey) { return false; } };
     const ImGuiKey key_first = (ImGuiKey)ImGuiKey_NamedKey_BEGIN;
@@ -32,20 +39,26 @@ struct record_t {
 class session_t {
 public:
     session_t(ImGuiKey key, int64_t init_time):
-        key(key), start_time(init_time), state(ImGui::IsKeyDown(key) ? keystate_t::Pressed : keystate_t::Released) {}
+            key_(key), start_time_(init_time), state_(ImGui::IsKeyDown(key) ? keystate_t::Pressed : keystate_t::Released) {}
     bool process();
-    ImGuiKey get_key() { return key; }
+    ImGuiKey get_key() { return key_; }
     record_t get_data_point(int);
-    size_t get_data_point_count() { return records.size(); }
-    keystate_t get_state() { return state; }
-    bool is_paused() { return paused; }
+    size_t get_data_point_count() { return records_.size(); }
+    keystate_t get_state() { return state_; }
+    bool is_paused() { return paused_; }
 private:
-    bool active = true;
-    bool paused = false;
-    int64_t start_time = 0;
-    ImGuiKey key;
-    keystate_t state;
-    std::vector<record_t> records;
+    bool active_ = true;
+    bool paused_ = false;
+    int64_t start_time_ = 0;
+    ImGuiKey key_;
+    keystate_t state_;
+    display_type_t display_type_ = display_type_t::PressedAndReleased;
+    const std::unordered_map<display_type_t, std::string> display_type_name = {
+            { display_type_t::Pressed, "Press only" },
+            { display_type_t::Released, "Release only" },
+            { display_type_t::PressedAndReleased, "Press+Release" }
+    };
+    std::vector<record_t> records_;
 };
 
 #endif
