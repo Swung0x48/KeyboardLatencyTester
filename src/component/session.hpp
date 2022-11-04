@@ -6,7 +6,8 @@
 #include <vector>
 #include <chrono>
 #include <unordered_map>
-enum class keypress_type_t {
+#include <sstream>
+enum class keypress_type_t: int {
     Press,
     Release
 };
@@ -41,6 +42,7 @@ public:
     session_t(ImGuiKey key, int64_t init_time):
             key_(key), start_time_(init_time), state_(ImGui::IsKeyDown(key) ? keystate_t::Pressed : keystate_t::Released) {}
     bool process();
+    void to_csv(std::ostream& stream);
     ImGuiKey get_key() { return key_; }
     record_t get_data_point(int);
     size_t get_data_point_count() { return records_.size(); }

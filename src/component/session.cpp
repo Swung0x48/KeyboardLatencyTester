@@ -1,4 +1,7 @@
 #include "session.hpp"
+#include <fstream>
+#include "implot_internal.h"
+
 bool session_t::process() {
     if (!active_)
         return false;
@@ -9,6 +12,14 @@ bool session_t::process() {
             records_.clear();
             press_count = 0;
             release_count = 0;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Save as csv")) {
+            auto now = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            std::string filename = std::string(ImGui::GetKeyName(key_)) + "_" + std::to_string(now) + ".csv";
+            std::ofstream stream(filename, std::ios::out | std::ios::trunc);
+            to_csv(stream);
+            stream.close();
         }
         ImGui::SameLine();
         ImGui::Checkbox("Paused", &paused_);
@@ -74,4 +85,11 @@ bool session_t::process() {
 
 record_t session_t::get_data_point(int index) {
     return records_[index];
+}
+
+void session_t::to_csv(std::ostream& stream) {
+    stream << "Timestamp,isPressed?\n";
+    for (auto& record: records_) {
+        stream << record.timestamp + start_time_ << "," << (int)record.type << "\n";
+    }
 }
