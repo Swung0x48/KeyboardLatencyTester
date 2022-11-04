@@ -1,8 +1,12 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.16)
 set (CMAKE_CXX_STANDARD 17)
-
 set(PROJECT_NAME KeyboardLatencyTester)
 project(${PROJECT_NAME})
+
+if (APPLE)
+    enable_language(OBJC)
+    enable_language(OBJCXX)
+endif()
 
 set(CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_LIST_DIR}/buildsystems/cmake"
@@ -54,6 +58,37 @@ if (WIN32)
 endif()
 
 find_package(glfw3 3.3 REQUIRED PATHS /usr/local/lib/cmake/glfw3/)
+
+if (APPLE)
+    find_library(COCOA_LIBRARY Cocoa)
+    find_library(METAL_LIBRARY Metal)
+    find_library(APPKIT_LIBRARY AppKit)
+    find_library(COREDATA_LIBRARY CoreData)
+    find_library(FOUNDATION_LIBRARY Foundation)
+    find_library(QUARTZCORE_LIBRARY QuartzCore)
+    message(STATUS Cocoa.framework=${COCOA_LIBRARY})
+    message(STATUS Metal.framework=${METAL_LIBRARY})
+    message(STATUS AppKit=${APPKIT_LIBRARY})
+    message(STATUS CoreData=${COREDATA_LIBRARY})
+    message(STATUS Foundation=${FOUNDATION_LIBRARY})
+    message(STATUS QuartzCore=${QUARTZCORE_LIBRARY})
+    set(OUTPUT_NAME_GLFW_METAL ${PROJECT_NAME}GlfwMetal)
+    add_executable(${OUTPUT_NAME_GLFW_METAL} MACOSX_BUNDLE src/main_glfw_metal.mm src/component/session.cpp src/imcontext.cpp src/imcontext.hpp)
+    target_link_libraries(${OUTPUT_NAME_GLFW_METAL} ImGui)
+    target_link_libraries(${OUTPUT_NAME_GLFW_METAL} ImPlot)
+    target_link_libraries(${OUTPUT_NAME_GLFW_METAL} Atomic_queue)
+    target_link_libraries(${OUTPUT_NAME_GLFW_METAL} glfw)
+    target_link_libraries(${OUTPUT_NAME_GLFW_METAL}
+            ${COCOA_LIBRARY}
+            ${METAL_LIBRARY}
+            ${APPKIT_LIBRARY}
+            ${COREDATA_LIBRARY}
+            ${FOUNDATION_LIBRARY}
+            ${QUARTZCORE_LIBRARY})
+    set_property (TARGET ${OUTPUT_NAME_GLFW_METAL} APPEND_STRING PROPERTY
+            COMPILE_FLAGS "-fobjc-arc")
+endif()
+
 find_package(OpenGL REQUIRED)
 set(OUTPUT_NAME_GLFW_OPENGL ${PROJECT_NAME}GlfwOpenGL3)
 add_executable(${OUTPUT_NAME_GLFW_OPENGL} src/main_glfw_opengl.cpp src/component/session.cpp src/imcontext.cpp src/imcontext.hpp)

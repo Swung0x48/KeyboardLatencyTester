@@ -37,6 +37,14 @@ if (WIN32)
             ${IMGUI_SOURCE_DIR}/backends/imgui_impl_dx12.cpp)
 endif()
 
+if (APPLE)
+    set(IMGUI_PUBLIC_HDRS ${IMGUI_PUBLIC_HDRS}
+            ${IMGUI_SOURCE_DIR}/backends/imgui_impl_metal.h)
+
+    set(IMGUI_SRCS ${IMGUI_SRCS}
+            ${IMGUI_SOURCE_DIR}/backends/imgui_impl_metal.mm)
+endif()
+
 set(IMGUI_PUBLIC_HDRS ${IMGUI_PUBLIC_HDRS}
         ${IMGUI_SOURCE_DIR}/backends/imgui_impl_opengl3.h
         ${IMGUI_SOURCE_DIR}/backends/imgui_impl_glfw.h)
