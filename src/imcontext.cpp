@@ -71,7 +71,7 @@ bool imcontext::update() {
                 }
                 ImGui::EndCombo();
             }
-            if (mode_ == mode_t::TimeWindow) {
+            if (mode_ == display_mode_t::TimeWindow) {
                 ImGui::SameLine();
                 ImGui::InputDouble("ms", &time_window_size);
             }
@@ -124,9 +124,9 @@ bool imcontext::update() {
                 ImPlot::SetupAxisLimits(ImAxis_Y1, -1.0, ImGuiKey_COUNT + 1.0);
             }
 
-            ImPlot::SetupAxis(ImAxis_X1, "Time (ms)", (mode_ == mode_t::AutoFit) ? ImPlotAxisFlags_AutoFit : 0);
+            ImPlot::SetupAxis(ImAxis_X1, "Time (ms)", (mode_ == display_mode_t::AutoFit) ? ImPlotAxisFlags_AutoFit : 0);
             ImPlot::SetupAxis(ImAxis_Y1, "Keycode * isPressed");
-            if (mode_ == mode_t::TimeWindow)
+            if (mode_ == display_mode_t::TimeWindow)
             {
                 auto now = (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - init_time);
                 auto begin_time = now - time_window_size * 1e6;

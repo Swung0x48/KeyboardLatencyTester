@@ -13,23 +13,37 @@ set(IMGUI_PUBLIC_HDRS
         ${IMGUI_SOURCE_DIR}/imstb_rectpack.h
         ${IMGUI_SOURCE_DIR}/imstb_textedit.h
         ${IMGUI_SOURCE_DIR}/imstb_truetype.h
-        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_win32.h
-        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_dx9.h
-        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_dx11.h
-        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_dx12.h
         )
+
 
 set(IMGUI_SRCS
         ${IMGUI_SOURCE_DIR}/imgui.cpp
         ${IMGUI_SOURCE_DIR}/imgui_draw.cpp
         ${IMGUI_SOURCE_DIR}/imgui_widgets.cpp
         ${IMGUI_SOURCE_DIR}/imgui_demo.cpp
-        ${IMGUI_SOURCE_DIR}/imgui_tables.cpp
-        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_win32.cpp
-        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_dx9.cpp
-        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_dx11.cpp
-        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_dx12.cpp
-        )
+        ${IMGUI_SOURCE_DIR}/imgui_tables.cpp)
+
+if (WIN32)
+    set(IMGUI_PUBLIC_HDRS ${IMGUI_PUBLIC_HDRS}
+            ${IMGUI_SOURCE_DIR}/backends/imgui_impl_win32.h
+            ${IMGUI_SOURCE_DIR}/backends/imgui_impl_dx9.h
+            ${IMGUI_SOURCE_DIR}/backends/imgui_impl_dx11.h
+            ${IMGUI_SOURCE_DIR}/backends/imgui_impl_dx12.h)
+
+    set(IMGUI_SRCS ${IMGUI_SRCS}
+            ${IMGUI_SOURCE_DIR}/backends/imgui_impl_win32.cpp
+            ${IMGUI_SOURCE_DIR}/backends/imgui_impl_dx9.cpp
+            ${IMGUI_SOURCE_DIR}/backends/imgui_impl_dx11.cpp
+            ${IMGUI_SOURCE_DIR}/backends/imgui_impl_dx12.cpp)
+endif()
+
+set(IMGUI_PUBLIC_HDRS ${IMGUI_PUBLIC_HDRS}
+        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_opengl3.h
+        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_glfw.h)
+
+set(IMGUI_SRCS ${IMGUI_SRCS}
+        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_glfw.cpp)
 
 add_library(ImGui INTERFACE)
 target_sources(ImGui INTERFACE ${IMGUI_SRCS} ${IMGUI_PUBLIC_HDRS})

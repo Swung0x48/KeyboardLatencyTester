@@ -33,8 +33,8 @@ target_include_directories(Atomic_queue INTERFACE
         )
 
 
-find_package(ImGui)
-find_package(ImPlot)
+find_package(ImGui REQUIRED)
+find_package(ImPlot REQUIRED)
 
 if (WIN32)
     set(OUTPUT_NAME_DX12 ${PROJECT_NAME}D3D12)
@@ -53,7 +53,11 @@ if (WIN32)
     target_link_libraries(${OUTPUT_NAME_DX11} ${DirectX11_LIBRARY})
 endif()
 
-#add_executable(ImPlotDemo ${IMPLOT_SOURCE_DIR}/implot_demo.cpp)
-#target_link_libraries(ImPlotDemo ImGui)
-#target_link_libraries(ImPlotDemo ImPlot)
-#target_link_libraries(ImPlotDemo ${DirectX11_LIBRARY})
+find_package(glfw3 3.3 REQUIRED PATHS /usr/local/lib/cmake/glfw3/)
+find_package(OpenGL REQUIRED)
+set(OUTPUT_NAME_GLFW_OPENGL ${PROJECT_NAME}GlfwOpenGL3)
+add_executable(${OUTPUT_NAME_GLFW_OPENGL} src/main_glfw_opengl.cpp src/component/session.cpp src/imcontext.cpp src/imcontext.hpp)
+target_link_libraries(${OUTPUT_NAME_GLFW_OPENGL} ImGui)
+target_link_libraries(${OUTPUT_NAME_GLFW_OPENGL} ImPlot)
+target_link_libraries(${OUTPUT_NAME_GLFW_OPENGL} Atomic_queue)
+target_link_libraries(${OUTPUT_NAME_GLFW_OPENGL} ${OPENGL_LIBRARY} glfw)
