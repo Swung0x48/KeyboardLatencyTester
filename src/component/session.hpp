@@ -52,8 +52,10 @@ private:
     bool active_ = true;
     bool paused_ = false;
     int64_t start_time_ = 0;
-    int press_count = 0;
-    int release_count = 0;
+    int press_count_ = 0;
+    int release_count_ = 0;
+    int64_t accumulated_pressed_time_ = 0;
+    int64_t accumulated_pressed_time_squared = 0;
     ImGuiKey key_;
     keystate_t state_;
     display_type_t display_type_ = display_type_t::PressedAndReleased;

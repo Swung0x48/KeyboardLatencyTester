@@ -1,5 +1,6 @@
 #include "session.hpp"
 #include <fstream>
+#include <cmath>
 #include "implot_internal.h"
 
 bool session_t::process() {
@@ -10,8 +11,10 @@ bool session_t::process() {
         ImGui::Begin(ImGui::GetKeyName(key_), &active_);
         if (ImGui::Button("Clear")) {
             records_.clear();
-            press_count = 0;
-            release_count = 0;
+            press_count_ = 0;
+            release_count_ = 0;
+            accumulated_pressed_time_ = 0;
+            accumulated_pressed_time_squared = 0;
         }
         ImGui::SameLine();
         if (ImGui::Button("Save as csv")) {
@@ -36,11 +39,20 @@ bool session_t::process() {
         }
 
         {
-            ImGui::Text("Press: %d", press_count);
+            ImGui::Text("Press: %d", press_count_);
             ImGui::SameLine();
-            ImGui::Text("Release: %d", release_count);
+            ImGui::Text("Release: %d", release_count_);
             ImGui::SameLine();
             ImGui::Text("Total: %llu", records_.size());
+            if (release_count_ == 0)
+                ImGui::Text("Duration stats not available.");
+            else {
+                size_t n = release_count_;
+                double avg = accumulated_pressed_time_ * 1.0 / n;
+                double stddev = sqrt(accumulated_pressed_time_squared * 1.0 / n - avg * avg);
+                ImGui::Text("Duration mean: %.2lfms | stddev: %.2lfms",
+                            avg * 1e-6, stddev * 1e-6);
+            }
         }
 
 
@@ -48,12 +60,18 @@ bool session_t::process() {
             if (ImGui::IsKeyDown(key_) && state_ == keystate_t::Released) {
                 records_.emplace_back(record_t{keypress_type_t::Press, std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - start_time_ });
                 state_ = keystate_t::Pressed;
-                ++press_count;
+                ++press_count_;
             }
             if (!ImGui::IsKeyDown(key_) && state_ == keystate_t::Pressed) {
                 records_.emplace_back(record_t{keypress_type_t::Release, std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - start_time_ });
                 state_ = keystate_t::Released;
-                ++release_count;
+                ++release_count_;
+                size_t n = records_.size();
+                if (n >= 2) {
+                    int64_t x = records_[n - 1].timestamp - records_[n - 2].timestamp;
+                    accumulated_pressed_time_ += x;
+                    accumulated_pressed_time_squared += (x * x);
+                }
             }
         }
 
