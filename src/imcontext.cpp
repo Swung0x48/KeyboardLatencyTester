@@ -125,7 +125,7 @@ bool imcontext::update() {
             }
 
             ImPlot::SetupAxis(ImAxis_X1, "Time (ms)", (mode_ == display_mode_t::AutoFit) ? ImPlotAxisFlags_AutoFit : 0);
-            ImPlot::SetupAxis(ImAxis_Y1, "Keycode * isPressed");
+            ImPlot::SetupAxis(ImAxis_Y1, "Keycode * isReleased");
             if (mode_ == display_mode_t::TimeWindow)
             {
                 auto now = (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - init_time);
