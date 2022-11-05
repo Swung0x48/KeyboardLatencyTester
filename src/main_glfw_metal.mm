@@ -44,7 +44,7 @@ int main(int, char**)
     CAMetalLayer *layer = [CAMetalLayer layer];
     layer.device = device;
     layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
-    layer.displaySyncEnabled = FALSE;
+    layer.displaySyncEnabled = NO;
     nswin.contentView.layer = layer;
     nswin.contentView.wantsLayer = YES;
 
