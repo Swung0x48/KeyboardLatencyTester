@@ -48,6 +48,7 @@ public:
     size_t get_data_point_count() { return records_.size(); }
     keystate_t get_state() { return state_; }
     bool is_paused() { return paused_; }
+    const std::vector<int64_t>& get_durations() { return durations_; }
 private:
     bool active_ = true;
     bool paused_ = false;
@@ -65,6 +66,7 @@ private:
             { display_type_t::PressedAndReleased, "Press+Release" }
     };
     std::vector<record_t> records_;
+    std::vector<int64_t> durations_;
 };
 
 #endif

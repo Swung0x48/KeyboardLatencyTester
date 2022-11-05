@@ -15,6 +15,7 @@ bool session_t::process() {
             release_count_ = 0;
             accumulated_pressed_time_ = 0;
             accumulated_pressed_time_squared = 0;
+            durations_.clear();
         }
         ImGui::SameLine();
         if (ImGui::Button("Save as csv")) {
@@ -71,6 +72,7 @@ bool session_t::process() {
                     int64_t x = records_[n - 1].timestamp - records_[n - 2].timestamp;
                     accumulated_pressed_time_ += x;
                     accumulated_pressed_time_squared += (x * x);
+                    durations_.emplace_back(x);
                 }
             }
         }

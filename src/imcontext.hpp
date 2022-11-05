@@ -20,14 +20,16 @@ public:
     ~imcontext();
     const ImVec4 background_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 private:
-    static ImPlotPoint data_point_getter(int index, void* opaque);
+    static ImPlotPoint timeline_point_getter(int index, void* opaque);
+    static ImPlotPoint distribution_point_getter(int index, void* opaque);
     std::unordered_map<ImGuiKey, session_t> sessions;
 
     bool first_update_ = true;
     bool show_demo_window = true;
     bool show_pre_new_session = false;
     bool show_keys = true;
-    bool show_dashboard = true;
+    bool show_timeline = true;
+    bool show_distribution = true;
     bool real_time_update = false;
     display_mode_t mode_ = display_mode_t::Manual;
     const std::unordered_map<display_mode_t, std::string> mode_name = {

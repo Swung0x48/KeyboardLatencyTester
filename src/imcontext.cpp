@@ -27,7 +27,7 @@ imcontext::imcontext() {
     init_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
-ImPlotPoint imcontext::data_point_getter(int index, void* opaque) {
+ImPlotPoint imcontext::timeline_point_getter(int index, void* opaque) {
     auto* session = static_cast<session_t*>(opaque);
     double y = (double)session->get_key();
 
@@ -48,7 +48,14 @@ ImPlotPoint imcontext::data_point_getter(int index, void* opaque) {
     return { point.timestamp * 1e-6, y };
 }
 
-#include <iostream>
+
+ImPlotPoint imcontext::distribution_point_getter(int index, void* opaque) {
+    auto* session = static_cast<session_t*>(opaque);
+    double x = (double)session->get_key();
+    double y = session->get_durations()[index] * 1e-6;
+    return { x, y };
+}
+
 bool imcontext::update() {
     ImGui::NewFrame();
     {
@@ -57,8 +64,9 @@ bool imcontext::update() {
         if (ImGui::Button("Start a new session..."))
             show_pre_new_session = true;
 
-        ImGui::Checkbox("Show dashboard", &show_dashboard);
-        if (show_dashboard) {
+        ImGui::Checkbox("Show distribution", &show_distribution);
+        ImGui::Checkbox("Show timeline", &show_timeline);
+        if (show_timeline) {
             ImGui::SameLine();
             ImGui::Checkbox("Real-time update", &real_time_update);
             if (ImGui::BeginCombo("Mode", mode_name.at(mode_).c_str())) {
@@ -106,9 +114,9 @@ bool imcontext::update() {
         }
     }
 
-    if (show_dashboard)
+    if (show_timeline)
     {
-        ImGui::Begin("Dashboard", &show_dashboard);
+        ImGui::Begin("Timeline", &show_timeline);
 
         ImVec2 v_min = ImGui::GetWindowContentRegionMin();
         ImVec2 v_max = ImGui::GetWindowContentRegionMax();
@@ -120,7 +128,6 @@ bool imcontext::update() {
 
         if (ImPlot::BeginPlot("Timeline", ImVec2(v_max.x - v_min.x, v_max.y - v_min.y))) {
             if (first_update_) {
-                first_update_ = false;
                 ImPlot::SetupAxisLimits(ImAxis_Y1, -1.0, ImGuiKey_COUNT + 1.0);
             }
 
@@ -136,9 +143,10 @@ bool imcontext::update() {
             for (auto& [key, session]: sessions) {
                 // The last index refers to the current('real-time') state
                 ImPlot::PlotLineG(ImGui::GetKeyName(key),
-                                  data_point_getter,
+                                  timeline_point_getter,
                                   &session,
-                                  session.get_data_point_count() * 2 + ((real_time_update && !session.is_paused()) ? 1 : 0));
+                                  session.get_data_point_count() * 2 +
+                                  ((real_time_update && !session.is_paused()) ? 1 : 0));
             }
 //            if (ImPlot::IsPlotHovered()) {
 //                ImPlotPoint point = ImPlot::GetPlotMousePos();
@@ -147,6 +155,33 @@ bool imcontext::update() {
 //                ImGui::Text("(%.2lf, %.2lf)", point.x, point.y);
 //                ImGui::EndTooltip();
 //            }
+            ImPlot::EndPlot();
+        }
+        ImGui::End();
+    }
+
+    if (show_distribution)
+    {
+        ImGui::Begin("Distribution", &show_timeline);
+
+        ImVec2 v_min = ImGui::GetWindowContentRegionMin();
+        ImVec2 v_max = ImGui::GetWindowContentRegionMax();
+
+        v_min.x += ImGui::GetWindowPos().x;
+        v_min.y += ImGui::GetWindowPos().y;
+        v_max.x += ImGui::GetWindowPos().x;
+        v_max.y += ImGui::GetWindowPos().y;
+
+        if (ImPlot::BeginPlot("Distribution", ImVec2(v_max.x - v_min.x, v_max.y - v_min.y))) {
+            if (first_update_) {
+                first_update_ = false;
+                ImPlot::SetupAxisLimits(ImAxis_X1, -1.0, ImGuiKey_COUNT + 1.0);
+            }
+            ImPlot::SetupAxis(ImAxis_X1, "Keycode");
+            ImPlot::SetupAxis(ImAxis_Y1, "Duration", ImPlotAxisFlags_AutoFit);
+            for (auto& [key, session]: sessions) {
+                ImPlot::PlotScatterG(ImGui::GetKeyName(session.get_key()), distribution_point_getter, &session, session.get_durations().size());
+            }
             ImPlot::EndPlot();
         }
         ImGui::End();
