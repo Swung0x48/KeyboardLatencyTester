@@ -45,13 +45,13 @@ if (APPLE)
             ${IMGUI_SOURCE_DIR}/backends/imgui_impl_metal.mm)
 endif()
 
-set(IMGUI_PUBLIC_HDRS ${IMGUI_PUBLIC_HDRS}
-        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_opengl3.h
-        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_glfw.h)
-
-set(IMGUI_SRCS ${IMGUI_SRCS}
-        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
-        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_glfw.cpp)
+#set(IMGUI_PUBLIC_HDRS ${IMGUI_PUBLIC_HDRS}
+#        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_opengl3.h
+#        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_glfw.h)
+#
+#set(IMGUI_SRCS ${IMGUI_SRCS}
+#        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+#        ${IMGUI_SOURCE_DIR}/backends/imgui_impl_glfw.cpp)
 
 add_library(ImGui INTERFACE)
 target_sources(ImGui INTERFACE ${IMGUI_SRCS} ${IMGUI_PUBLIC_HDRS})

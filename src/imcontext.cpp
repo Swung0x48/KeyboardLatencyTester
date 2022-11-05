@@ -140,6 +140,13 @@ bool imcontext::update() {
                                   &session,
                                   session.get_data_point_count() * 2 + ((real_time_update && !session.is_paused()) ? 1 : 0));
             }
+//            if (ImPlot::IsPlotHovered()) {
+//                ImPlotPoint point = ImPlot::GetPlotMousePos();
+//                ImPlot::GetPlotPos();
+//                ImGui::BeginTooltip();
+//                ImGui::Text("(%.2lf, %.2lf)", point.x, point.y);
+//                ImGui::EndTooltip();
+//            }
             ImPlot::EndPlot();
         }
         ImGui::End();
