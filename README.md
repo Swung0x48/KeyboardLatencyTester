@@ -19,3 +19,7 @@ This project theoretically support all the backends that imgui supports. However
 | D3D12 | Win32 | Supported, w/ binary | For Windows |
 | OpenGL | glfw | Supported, w/o binary | Mainly for Linux. (Linux folks can figure out how to compile it right?)
 | Metal | glfw | Supported, w/o binary | For macOS |
+
+# Future plans
+
+- Alternatively use [libusb](https://github.com/libusb/libusb) as input backend. (For accurately measure latencies directly from USB controller, and identify latencies from windowing systems/compositors)
