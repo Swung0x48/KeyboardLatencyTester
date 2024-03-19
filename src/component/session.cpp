@@ -103,8 +103,24 @@ bool session_t::process() {
     return true;
 }
 
-record_t session_t::get_data_point(int index) {
+record_t session_t::get_data_point(const size_t index) {
     return records_[index];
+}
+
+int64_t session_t::find_by_x(const int64_t x, const display_type_t type) {
+    auto it = std::lower_bound(records_.begin(), records_.end(), x,
+        [type](const record_t& record, const int64_t val) {
+            if (type == display_type_t::Pressed && record.type == keypress_type_t::Release)
+                return false;
+            if (type == display_type_t::Released && record.type == keypress_type_t::Press)
+                return false;
+            return record.timestamp < val;
+        });
+    
+    if (it == records_.end())
+        return -1;
+    
+    return std::distance(records_.begin(), it);
 }
 
 void session_t::to_csv(std::ostream& stream) {

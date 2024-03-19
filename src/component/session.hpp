@@ -44,7 +44,8 @@ public:
     bool process();
     void to_csv(std::ostream& stream);
     ImGuiKey get_key() { return key_; }
-    record_t get_data_point(int);
+    record_t get_data_point(const size_t);
+    int64_t find_by_x(const int64_t, const display_type_t type = display_type_t::PressedAndReleased);
     size_t get_data_point_count() { return records_.size(); }
     keystate_t get_state() { return state_; }
     bool is_paused() { return paused_; }

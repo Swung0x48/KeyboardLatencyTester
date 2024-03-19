@@ -148,13 +148,35 @@ bool imcontext::update() {
                                   session.get_data_point_count() * 2 +
                                   ((real_time_update && !session.is_paused()) ? 1 : 0));
             }
-//            if (ImPlot::IsPlotHovered()) {
-//                ImPlotPoint point = ImPlot::GetPlotMousePos();
-//                ImPlot::GetPlotPos();
-//                ImGui::BeginTooltip();
-//                ImGui::Text("(%.2lf, %.2lf)", point.x, point.y);
-//                ImGui::EndTooltip();
-//            }
+            if (ImPlot::IsPlotHovered()) {
+                ImPlotPoint point = ImPlot::GetPlotMousePos();
+                ImPlot::GetPlotPos();
+                ImGui::BeginTooltip();
+                ImGui::Text("(%.2lf, %.2lf)", point.x, point.y);
+
+                double x_data[2];
+                double y_data[2];
+                for (auto& [key, session]: sessions) {
+                    const auto next_idx = session.find_by_x((int64_t)point.x * 1e6);
+                    const auto last_idx = next_idx - 1;
+                    if (next_idx < 0 || last_idx < 0)
+                        continue;
+                    
+                    const auto ts1 = session.get_data_point(next_idx).timestamp;
+                    const auto ts0 = session.get_data_point(last_idx).timestamp;
+                    x_data[0] = ts0 * 1e-6;
+                    x_data[1] = ts1 * 1e-6;
+                    y_data[0] = point.y;
+                    y_data[1] = point.y;
+                    ImGui::Text("Delta t = %.2lfms", x_data[1] - x_data[0]);
+                    ImGui::Text("idx %lld, (%.2lf, %.2lf, %.2lf, %.2lf)", 
+                            last_idx, x_data[0], x_data[1], y_data[0], y_data[1]);
+                }
+                ImGui::EndTooltip();
+
+                ImPlot::PlotLine("##Hover", x_data, y_data, 2);
+            }
+            
             ImPlot::EndPlot();
         }
         ImGui::End();
