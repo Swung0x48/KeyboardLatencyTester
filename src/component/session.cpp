@@ -111,9 +111,9 @@ int64_t session_t::find_by_x(const int64_t x, const display_type_t type) {
     auto it = std::lower_bound(records_.begin(), records_.end(), x,
         [type](const record_t& record, const int64_t val) {
             if (type == display_type_t::Pressed && record.type == keypress_type_t::Release)
-                return false;
+                return true;
             if (type == display_type_t::Released && record.type == keypress_type_t::Press)
-                return false;
+                return true;
             return record.timestamp < val;
         });
     

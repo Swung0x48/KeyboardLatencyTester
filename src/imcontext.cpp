@@ -1,4 +1,5 @@
 #include "imcontext.hpp"
+#include <limits>
 
 imcontext::imcontext() {
     // Setup Dear ImGui context
@@ -150,33 +151,61 @@ bool imcontext::update() {
             }
             if (ImPlot::IsPlotHovered()) {
                 ImPlotPoint point = ImPlot::GetPlotMousePos();
-                ImPlot::GetPlotPos();
-                ImGui::BeginTooltip();
-                ImGui::Text("(%.2lf, %.2lf)", point.x, point.y);
+                // ImGui::Text("(%.2lf, %.2lf)", point.x, point.y);
 
-                double x_data[2];
-                double y_data[2];
+                const ImPlotRect rect = ImPlot::GetPlotLimits(ImAxis_X1, ImAxis_Y1);
+                double xmin = std::numeric_limits<double>::min();
+                double xmax = std::numeric_limits<double>::max();
                 for (auto& [key, session]: sessions) {
-                    const auto next_idx = session.find_by_x((int64_t)point.x * 1e6);
-                    const auto last_idx = next_idx - 1;
+                    const auto next_idx = session.find_by_x(
+                        (int64_t)point.x * 1e6, display_type_t::Released);
+                    const auto last_idx = next_idx - 2;
                     if (next_idx < 0 || last_idx < 0)
                         continue;
                     
-                    const auto ts1 = session.get_data_point(next_idx).timestamp;
-                    const auto ts0 = session.get_data_point(last_idx).timestamp;
-                    x_data[0] = ts0 * 1e-6;
-                    x_data[1] = ts1 * 1e-6;
-                    y_data[0] = point.y;
-                    y_data[1] = point.y;
-                    ImGui::Text("Delta t = %.2lfms", x_data[1] - x_data[0]);
-                    ImGui::Text("idx %lld, (%.2lf, %.2lf, %.2lf, %.2lf)", 
-                            last_idx, x_data[0], x_data[1], y_data[0], y_data[1]);
-                }
-                ImGui::EndTooltip();
+                    if (next_idx >= 0) {
+                        const auto ts1 = session.get_data_point(next_idx).timestamp;
+                        xmax = std::min(xmax, ts1 * 1e-6);
+                    }
 
-                ImPlot::PlotLine("##Hover", x_data, y_data, 2);
+                    if (last_idx >= 0) {
+                        const auto ts0 = session.get_data_point(last_idx).timestamp;
+                        xmin = std::max(xmin, ts0 * 1e-6);
+                    }
+                }
+
+                // Skip if on left or right edges
+                if (xmin >= rect.X.Min && xmax <= rect.X.Max) {
+                    static double x_data[6];
+                    static double y_data[6];
+                    ImGui::BeginTooltip();
+                    {
+                        ImGui::Text("dT = %.2lfms", x_data[3] - x_data[2]);
+                        // ImGui::Text("idx %lld, (%.2lf, %.2lf, %.2lf, %.2lf)", 
+                        //         last_idx, x_data[2], x_data[3], y_data[2], y_data[3]);
+                    }
+                    ImGui::EndTooltip();
+                    
+                    // Horizontal Line
+                    x_data[2] = xmin;
+                    x_data[3] = xmax;
+                    y_data[2] = point.y;
+                    y_data[3] = point.y;
+
+                    // Vert Left
+                    x_data[0] = xmin;
+                    x_data[1] = xmin;
+                    y_data[0] = rect.Y.Min;
+                    y_data[1] = rect.Y.Max;
+
+                    // Vert Right
+                    x_data[4] = xmax;
+                    x_data[5] = xmax;
+                    y_data[4] = rect.Y.Min;
+                    y_data[5] = rect.Y.Max;
+                    ImPlot::PlotLine("##Hover", x_data, y_data, 6);
+                }
             }
-            
             ImPlot::EndPlot();
         }
         ImGui::End();
