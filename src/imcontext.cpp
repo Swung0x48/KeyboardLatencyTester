@@ -217,7 +217,7 @@ bool imcontext::update() {
 
     if (show_distribution)
     {
-        ImGui::Begin("Distribution", &show_timeline);
+        ImGui::Begin("Distribution", &show_distribution);
 
         ImVec2 v_min = ImGui::GetWindowContentRegionMin();
         ImVec2 v_max = ImGui::GetWindowContentRegionMax();
