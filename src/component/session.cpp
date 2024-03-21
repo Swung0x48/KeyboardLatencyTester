@@ -11,8 +11,10 @@ bool session_t::process() {
         ImGui::Begin(ImGui::GetKeyName(key_), &active_);
         if (ImGui::Button("Clear")) {
             records_.clear();
-            press_count_ = 0;
-            release_count_ = 0;
+            press_indices_.clear();
+            release_indices_.clear();
+            //press_count_ = 0;
+            //release_count_ = 0;
             accumulated_pressed_time_ = 0;
             accumulated_pressed_time_squared = 0;
             durations_.clear();
@@ -40,15 +42,15 @@ bool session_t::process() {
         }
 
         {
-            ImGui::Text("Press: %d", press_count_);
+            ImGui::Text("Press: %d", press_indices_.size());
             ImGui::SameLine();
-            ImGui::Text("Release: %d", release_count_);
+            ImGui::Text("Release: %d", release_indices_.size());
             ImGui::SameLine();
             ImGui::Text("Total: %llu", records_.size());
-            if (release_count_ == 0)
+            if (release_indices_.empty())
                 ImGui::Text("Duration stats not available.");
             else {
-                size_t n = release_count_;
+                size_t n = release_indices_.size();
                 double avg = accumulated_pressed_time_ * 1.0 / n;
                 double stddev = sqrt(accumulated_pressed_time_squared * 1.0 / n - avg * avg);
                 ImGui::Text("Duration mean: %.2lfms | stddev: %.2lfms",
@@ -60,13 +62,17 @@ bool session_t::process() {
         if (!paused_ && !funcs::IsLegacyNativeDupe(key_)) {
             if (ImGui::IsKeyDown(key_) && state_ == keystate_t::Released) {
                 records_.emplace_back(record_t{keypress_type_t::Press, std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - start_time_ });
+                press_indices_.emplace_back(records_.size() - 1);
+                
                 state_ = keystate_t::Pressed;
-                ++press_count_;
+                //++press_count_;
             }
             if (!ImGui::IsKeyDown(key_) && state_ == keystate_t::Pressed) {
                 records_.emplace_back(record_t{keypress_type_t::Release, std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - start_time_ });
+                release_indices_.emplace_back(records_.size() - 1);
+                
                 state_ = keystate_t::Released;
-                ++release_count_;
+                //++release_count_;
                 size_t n = records_.size();
                 if (n >= 2) {
                     int64_t x = records_[n - 1].timestamp - records_[n - 2].timestamp;
@@ -108,19 +114,45 @@ record_t session_t::get_data_point(const size_t index) {
 }
 
 int64_t session_t::find_by_x(const int64_t x, const display_type_t type) {
-    auto it = std::lower_bound(records_.begin(), records_.end(), x,
-        [type](const record_t& record, const int64_t val) {
-            if (type == display_type_t::Pressed && record.type == keypress_type_t::Release)
-                return true;
-            if (type == display_type_t::Released && record.type == keypress_type_t::Press)
-                return true;
-            return record.timestamp < val;
-        });
-    
-    if (it == records_.end())
-        return -1;
-    
-    return std::distance(records_.begin(), it);
+    switch (type) {
+        case display_type_t::PressedAndReleased: {
+            auto it = std::lower_bound(records_.begin(), records_.end(), x,
+            [](const record_t& record, const int64_t val) {
+                return record.timestamp < val;
+            });
+        
+            if (it == records_.end())
+                return -1;
+            
+            return std::distance(records_.begin(), it);
+        }
+        case display_type_t::Pressed: {
+            auto it = std::lower_bound(press_indices_.begin(), press_indices_.end(), x,
+            [this](const size_t idx, const int64_t val) {
+                const record_t& record = records_[idx];
+                return record.timestamp < val;
+            });
+
+            if (it == press_indices_.end())
+                return -1;
+            
+            return *it;
+        }
+        case display_type_t::Released: {
+            auto it = std::lower_bound(release_indices_.begin(), release_indices_.end(), x,
+            [this](const size_t idx, const int64_t val) {
+                const record_t& record = records_[idx];
+                return record.timestamp < val;
+            });
+
+            if (it == release_indices_.end())
+                return -1;
+            
+            return *it;
+        }
+        default:
+            return -1;
+    }
 }
 
 void session_t::to_csv(std::ostream& stream) {

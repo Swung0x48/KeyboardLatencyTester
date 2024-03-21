@@ -156,33 +156,37 @@ bool imcontext::update() {
                 const ImPlotRect rect = ImPlot::GetPlotLimits(ImAxis_X1, ImAxis_Y1);
                 double xmin = std::numeric_limits<double>::min();
                 double xmax = std::numeric_limits<double>::max();
+                ImGui::BeginTooltip();
                 for (auto& [key, session]: sessions) {
                     const auto next_idx = session.find_by_x(
                         (int64_t)point.x * 1e6, display_type_t::Released);
                     const auto last_idx = next_idx - 2;
-                    if (next_idx < 0 || last_idx < 0)
-                        continue;
                     
                     if (next_idx >= 0) {
-                        const auto ts1 = session.get_data_point(next_idx).timestamp;
+                        const auto dp1 = session.get_data_point(next_idx);
+                        const auto ts1 = dp1.timestamp;
                         xmax = std::min(xmax, ts1 * 1e-6);
                     }
 
                     if (last_idx >= 0) {
+                        const auto dp0 = session.get_data_point(last_idx);
                         const auto ts0 = session.get_data_point(last_idx).timestamp;
                         xmin = std::max(xmin, ts0 * 1e-6);
                     }
+
+                    ImGui::Text("last %lld, next %lld, min %.2lf, max %.2lf", 
+                                last_idx, next_idx, xmin, xmax);
                 }
+                ImGui::EndTooltip();
 
                 // Skip if on left or right edges
+                // or even not on mouse pos
                 if (xmin >= rect.X.Min && xmax <= rect.X.Max) {
                     static double x_data[6];
                     static double y_data[6];
                     ImGui::BeginTooltip();
                     {
                         ImGui::Text("dT = %.2lfms", x_data[3] - x_data[2]);
-                        // ImGui::Text("idx %lld, (%.2lf, %.2lf, %.2lf, %.2lf)", 
-                        //         last_idx, x_data[2], x_data[3], y_data[2], y_data[3]);
                     }
                     ImGui::EndTooltip();
                     

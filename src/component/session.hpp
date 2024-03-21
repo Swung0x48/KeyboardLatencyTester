@@ -54,8 +54,8 @@ private:
     bool active_ = true;
     bool paused_ = false;
     int64_t start_time_ = 0;
-    int press_count_ = 0;
-    int release_count_ = 0;
+    // int press_count_ = 0;
+    // int release_count_ = 0;
     int64_t accumulated_pressed_time_ = 0;
     int64_t accumulated_pressed_time_squared = 0;
     ImGuiKey key_;
@@ -67,6 +67,8 @@ private:
             { display_type_t::PressedAndReleased, "Press+Release" }
     };
     std::vector<record_t> records_;
+    std::vector<size_t> press_indices_;
+    std::vector<size_t> release_indices_;
     std::vector<int64_t> durations_;
 };
 
