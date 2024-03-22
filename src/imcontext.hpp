@@ -3,6 +3,7 @@
 #include "imgui.h"
 #include "implot.h"
 #include <unordered_map>
+#include <memory>
 #include <src/component/session.hpp>
 #include <src/component/comparison.hpp>
 
@@ -23,7 +24,7 @@ public:
 private:
     static ImPlotPoint timeline_point_getter(int index, void* opaque);
     static ImPlotPoint distribution_point_getter(int index, void* opaque);
-    std::unordered_map<ImGuiKey, session_t> sessions;
+    std::unordered_map<ImGuiKey, std::shared_ptr<session_t>> sessions;
     std::vector<comparison_t> comparisons;
 
     bool first_update_ = true;

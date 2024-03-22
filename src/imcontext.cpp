@@ -97,14 +97,14 @@ bool imcontext::update() {
             if (key == ImGuiKey_MouseWheelX || key == ImGuiKey_MouseWheelY || key == ImGuiKey_MouseLeft) continue;
             if (funcs::IsLegacyNativeDupe(key)) continue;
             if (ImGui::IsKeyReleased(key)) {
-                sessions.emplace(key, session_t{key, init_time});
+                sessions.emplace(key, std::make_shared<session_t>(key, init_time));
                 show_pre_new_session = false;
             }
         }
         ImGui::Text("Press a key to start a session for the key you pressed...");
         ImGui::Text("For mouse left, click the following button");
         if (ImGui::Button("New \'MouseLeft\' session...")) {
-            sessions.emplace(ImGuiKey_MouseLeft, session_t{ImGuiKey_MouseLeft, init_time});
+            sessions.emplace(ImGuiKey_MouseLeft, std::make_shared<session_t>(ImGuiKey_MouseLeft, init_time));
             show_pre_new_session = false;
         }
         ImGui::End();
@@ -161,9 +161,15 @@ bool imcontext::update() {
 
             if (it != comparisons.end()) {
                 auto idx = std::distance(comparisons.begin(), it);
-                new (&comparisons[idx]) comparison_t(selected_key[0], selected_key[1], idx);
+                new (&comparisons[idx])
+                    comparison_t(
+                        selected_key[0], selected_key[1], idx,
+                        sessions[selected_key[0]], sessions[selected_key[1]]);
             } else {
-                comparisons.emplace_back(selected_key[0], selected_key[1], comparisons.size());
+                comparisons.emplace_back(
+                    selected_key[0], selected_key[1], 
+                    comparisons.size(),
+                    sessions[selected_key[0]], sessions[selected_key[1]]);
             }
             show_pre_new_comparison = false;
         }
@@ -175,7 +181,7 @@ bool imcontext::update() {
     }
 
     for (auto it = sessions.begin(); it != sessions.end(); ) {
-        if (!it->second.process()) {
+        if (!it->second->process()) {
             it = sessions.erase(it);
         } else {
             ++it;
@@ -216,9 +222,9 @@ bool imcontext::update() {
                 // The last index refers to the current('real-time') state
                 ImPlot::PlotLineG(ImGui::GetKeyName(key),
                                   timeline_point_getter,
-                                  &session,
-                                  session.get_data_point_count() * 2 +
-                                  ((real_time_update && !session.is_paused()) ? 1 : 0));
+                                  session.get(),
+                                  session->get_data_point_count() * 2 +
+                                  ((real_time_update && !session->is_paused()) ? 1 : 0));
             }
             if (ImPlot::IsPlotHovered()) {
                 ImPlotPoint point = ImPlot::GetPlotMousePos();
@@ -229,19 +235,19 @@ bool imcontext::update() {
                 double xmax = std::numeric_limits<double>::max();
                 ImGui::BeginTooltip();
                 for (auto& [key, session]: sessions) {
-                    const auto next_idx = session.find_by_x(
+                    const auto next_idx = session->find_by_x(
                         (int64_t)point.x * 1e6, display_type_t::Released);
                     const auto last_idx = next_idx - 2;
                     
                     if (next_idx >= 0) {
-                        const auto dp1 = session.get_data_point(next_idx);
+                        const auto dp1 = session->get_data_point(next_idx);
                         const auto ts1 = dp1.timestamp;
                         xmax = std::min(xmax, ts1 * 1e-6);
                     }
 
                     if (last_idx >= 0) {
-                        const auto dp0 = session.get_data_point(last_idx);
-                        const auto ts0 = session.get_data_point(last_idx).timestamp;
+                        const auto dp0 = session->get_data_point(last_idx);
+                        const auto ts0 = dp0.timestamp;
                         xmin = std::max(xmin, ts0 * 1e-6);
                     }
 
@@ -306,7 +312,8 @@ bool imcontext::update() {
             ImPlot::SetupAxis(ImAxis_X1, "Keycode");
             ImPlot::SetupAxis(ImAxis_Y1, "Duration", ImPlotAxisFlags_AutoFit);
             for (auto& [key, session]: sessions) {
-                ImPlot::PlotScatterG(ImGui::GetKeyName(session.get_key()), distribution_point_getter, &session, session.get_durations().size());
+                ImPlot::PlotScatterG(ImGui::GetKeyName(session->get_key()), 
+                    distribution_point_getter, session.get(), session->get_durations().size());
             }
             ImPlot::EndPlot();
         }
