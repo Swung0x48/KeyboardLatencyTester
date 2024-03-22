@@ -7,13 +7,17 @@
 #include <chrono>
 #include <string>
 #include <unordered_map>
+#include <memory>
 
 #include "src/component/session.hpp"
 
 class comparison_t {
 public:
     comparison_t(
-        const ImGuiKey key0, const ImGuiKey key1, const size_t key);
+        const ImGuiKey key0, const ImGuiKey key1,
+        const size_t key,
+        std::shared_ptr<session_t> session0,
+        std::shared_ptr<session_t> session1);
     bool process();
     const size_t get_key() { return key_; }
     bool is_active() const { return active_; }
@@ -36,6 +40,8 @@ private:
     const ImGuiKey key0_ = ImGuiKey_None;
     const ImGuiKey key1_ = ImGuiKey_None;
     const std::string title_;
+    std::shared_ptr<session_t> session0_;
+    std::shared_ptr<session_t> session1_;
     int offset_ = 0;
 };
 
