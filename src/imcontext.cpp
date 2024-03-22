@@ -65,6 +65,9 @@ bool imcontext::update() {
         if (ImGui::Button("Start a new session..."))
             show_pre_new_session = true;
 
+        if (ImGui::Button("Start a new comparison..."))
+            show_pre_new_comparison = true;
+
         ImGui::Checkbox("Show distribution", &show_distribution);
         ImGui::Checkbox("Show timeline", &show_timeline);
         if (show_timeline) {
@@ -89,7 +92,7 @@ bool imcontext::update() {
     }
 
     if (show_pre_new_session) {
-        ImGui::Begin("Waiting input...", &show_pre_new_session, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::Begin("Waiting for input...", &show_pre_new_session, ImGuiWindowFlags_AlwaysAutoResize);
         for (ImGuiKey key = key_first; key < ImGuiKey_COUNT; key = (ImGuiKey)(key + 1)) {
             if (key == ImGuiKey_MouseWheelX || key == ImGuiKey_MouseWheelY || key == ImGuiKey_MouseLeft) continue;
             if (funcs::IsLegacyNativeDupe(key)) continue;
@@ -105,6 +108,60 @@ bool imcontext::update() {
             show_pre_new_session = false;
         }
         ImGui::End();
+    }
+
+    if (show_pre_new_comparison) {
+        //ImGui::ShowDemoWindow();
+
+        ImGui::Begin("Choose two keys for comparison:", &show_pre_new_comparison, ImGuiWindowFlags_AlwaysAutoResize);
+        
+        if (ImGui::BeginListBox("##key0"))
+        {
+            for (auto& [key, session]: sessions) {
+                const bool is_selected = (selected_key[0] == key);
+                const bool is_disabled = (selected_key[1] == key);
+                if (ImGui::Selectable(ImGui::GetKeyName(key), 
+                    is_selected, is_disabled ? ImGuiSelectableFlags_Disabled : 0))
+                    selected_key[0] = key;
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndListBox();
+        }
+
+        ImGui::SameLine();
+        
+        if (ImGui::BeginListBox("##key1"))
+        {
+            for (auto& [key, session]: sessions) {
+                const bool is_selected = (selected_key[1] == key);
+                const bool is_disabled = (selected_key[0] == key);
+                if (ImGui::Selectable(ImGui::GetKeyName(key), 
+                    is_selected, is_disabled ? ImGuiSelectableFlags_Disabled : 0))
+                    selected_key[1] = key;
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndListBox();
+        }
+
+        // static int offset = 0;
+        // ImGui::InputInt("Offset", &offset);
+        // ImGui::SameLine(); HelpMarker(
+        //         "You may set an offset to match relevant data points.\n"
+        //         "Offset will be put on the right side key.\n"
+        //         "e.g. Setting an offset of 1, will compare\n"
+        //         "the n-th data on the left, and \n"
+        //         "the (n+1)st of data on the right.");
+
+        if (ImGui::Button("Compare!")) {
+            show_pre_new_comparison = false;
+        }
+
+        ImGui::End();
+    } else {
+        selected_key[0] = ImGuiKey_None;
+        selected_key[1] = ImGuiKey_None;
     }
 
     for (auto it = sessions.begin(); it != sessions.end(); ) {

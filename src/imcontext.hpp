@@ -22,11 +22,25 @@ public:
 private:
     static ImPlotPoint timeline_point_getter(int index, void* opaque);
     static ImPlotPoint distribution_point_getter(int index, void* opaque);
+    static void HelpMarker(const char* desc)
+    {
+        ImGui::TextDisabled("(?)");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort))
+        {
+            ImGui::BeginTooltip();
+            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+            ImGui::TextUnformatted(desc);
+            ImGui::PopTextWrapPos();
+            ImGui::EndTooltip();
+        }
+    }
     std::unordered_map<ImGuiKey, session_t> sessions;
 
     bool first_update_ = true;
     bool show_demo_window = true;
     bool show_pre_new_session = false;
+    bool show_pre_new_comparison = false;
+    ImGuiKey selected_key[2] = { ImGuiKey_None, ImGuiKey_None };
     bool show_keys = true;
     bool show_timeline = true;
     bool show_distribution = true;
