@@ -30,7 +30,7 @@ bool comparison_t::process() {
                     "valid range for both side of the comparison.");
         }
 
-        if (ImGui::BeginTable(title_.c_str(), 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+        if (ImGui::BeginTable(title_.c_str(), 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
         {
             size_t len = std::min(session0_->get_data_point_count(), session1_->get_data_point_count());
             for (size_t i = 0; i < len; ++i) {
@@ -47,8 +47,10 @@ bool comparison_t::process() {
                 str0 += (record0.type == keypress_type_t::Press) ? " \\" : " /";
                 str1 += (record1.type == keypress_type_t::Press) ? " \\" : " /";
                 ImGui::TableSetColumnIndex(0);
-                ImGui::Text("%s", (str0 + " -> " + str1).c_str());
+                ImGui::Text("%s", str0.c_str());
                 ImGui::TableSetColumnIndex(1);
+                ImGui::Text("%s", str1.c_str());
+                ImGui::TableSetColumnIndex(2);
                 ImGui::Text("%+lf", (record0.timestamp - record1.timestamp) * 1e-6);
             }
 
