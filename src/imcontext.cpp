@@ -155,6 +155,16 @@ bool imcontext::update() {
         //         "the (n+1)st of data on the right.");
 
         if (ImGui::Button("Compare!")) {
+            // Find if there's a hole
+            auto it = std::find_if(comparisons.begin(), comparisons.end(), 
+                [](const comparison_t& c) { return !c.is_active(); });
+
+            if (it != comparisons.end()) {
+                auto idx = std::distance(comparisons.begin(), it);
+                new (&comparisons[idx]) comparison_t(selected_key[0], selected_key[1], idx);
+            } else {
+                comparisons.emplace_back(selected_key[0], selected_key[1], comparisons.size());
+            }
             show_pre_new_comparison = false;
         }
 
@@ -170,6 +180,10 @@ bool imcontext::update() {
         } else {
             ++it;
         }
+    }
+
+    for (size_t i = 0; i < comparisons.size(); ++i) {
+        comparisons[i].process();
     }
 
     if (show_timeline)

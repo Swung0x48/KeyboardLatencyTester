@@ -4,6 +4,7 @@
 #include "implot.h"
 #include <unordered_map>
 #include <src/component/session.hpp>
+#include <src/component/comparison.hpp>
 
 namespace ImGui { extern ImGuiKeyData* GetKeyData(ImGuiKey key); }
 
@@ -22,19 +23,8 @@ public:
 private:
     static ImPlotPoint timeline_point_getter(int index, void* opaque);
     static ImPlotPoint distribution_point_getter(int index, void* opaque);
-    static void HelpMarker(const char* desc)
-    {
-        ImGui::TextDisabled("(?)");
-        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort))
-        {
-            ImGui::BeginTooltip();
-            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-            ImGui::TextUnformatted(desc);
-            ImGui::PopTextWrapPos();
-            ImGui::EndTooltip();
-        }
-    }
     std::unordered_map<ImGuiKey, session_t> sessions;
+    std::vector<comparison_t> comparisons;
 
     bool first_update_ = true;
     bool show_demo_window = true;
