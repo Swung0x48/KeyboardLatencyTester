@@ -103,7 +103,7 @@ endif()
 
 message(STATUS "CMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR}")
 
-find_package(glfw3 REQUIRED)
+find_package(glfw3)
 if (${glfw3_FOUND})
     find_package(OpenGL REQUIRED)
         if (${OpenGL_FOUND})
