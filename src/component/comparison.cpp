@@ -32,17 +32,36 @@ bool comparison_t::process() {
 
         if (ImGui::BeginTable(title_.c_str(), 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
         {
-            size_t len = std::min(session0_->get_data_point_count(), session1_->get_data_point_count());
-            for (size_t i = 0; i < len; ++i) {
+            ImGui::TableSetupColumn("L");
+            ImGui::TableSetupColumn("R");
+            ImGui::TableSetupColumn("t(L)-t(R)");
+            ImGui::TableHeadersRow();
+
+            ptrdiff_t s0min = 0, s0max = session0_->get_data_point_count();
+            ptrdiff_t s1min = 0, s1max = session1_->get_data_point_count();
+
+            if (offset_ > 0) {
+                s0min += offset_;
+            } else {
+                s1min += (-offset_);
+            }
+
+            const ptrdiff_t tmin = std::max(s0min, s1min);
+            const ptrdiff_t tmax = std::min(s0max, s1max);
+
+            for (ptrdiff_t i = 0; i < tmax - tmin; ++i) {
+                const auto i0 = i + s0min;
+                const auto i1 = i + s1min;
+
                 ImGui::TableNextRow();
-                const auto& record0 = session0_->get_data_point(i);
-                const auto& record1 = session1_->get_data_point(i);
+                const auto& record0 = session0_->get_data_point(i0);
+                const auto& record1 = session1_->get_data_point(i1);
 
                 std::string str0(ImGui::GetKeyName(key0_));
                 std::string str1(ImGui::GetKeyName(key1_));
 
-                str0 += std::to_string(i);
-                str1 += std::to_string(i);
+                str0 += std::to_string(i0);
+                str1 += std::to_string(i1);
 
                 str0 += (record0.type == keypress_type_t::Press) ? " \\" : " /";
                 str1 += (record1.type == keypress_type_t::Press) ? " \\" : " /";
