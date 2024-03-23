@@ -144,35 +144,29 @@ bool imcontext::update() {
             }
             ImGui::EndListBox();
         }
+        
+        ImGui::BeginDisabled((selected_key[0] == ImGuiKey_None) || (selected_key[1] == ImGuiKey_None)); {
+            if (ImGui::Button("Compare!")) {
+                // Find if there's a hole
+                auto it = std::find_if(comparisons.begin(), comparisons.end(), 
+                    [](const comparison_t& c) { return !c.is_active(); });
 
-        // static int offset = 0;
-        // ImGui::InputInt("Offset", &offset);
-        // ImGui::SameLine(); HelpMarker(
-        //         "You may set an offset to match relevant data points.\n"
-        //         "Offset will be put on the right side key.\n"
-        //         "e.g. Setting an offset of 1, will compare\n"
-        //         "the n-th data on the left, and \n"
-        //         "the (n+1)st of data on the right.");
-
-        if (ImGui::Button("Compare!")) {
-            // Find if there's a hole
-            auto it = std::find_if(comparisons.begin(), comparisons.end(), 
-                [](const comparison_t& c) { return !c.is_active(); });
-
-            if (it != comparisons.end()) {
-                auto idx = std::distance(comparisons.begin(), it);
-                new (&comparisons[idx])
-                    comparison_t(
-                        selected_key[0], selected_key[1], idx,
+                if (it != comparisons.end()) {
+                    auto idx = std::distance(comparisons.begin(), it);
+                    new (&comparisons[idx])
+                        comparison_t(
+                            selected_key[0], selected_key[1], idx,
+                            sessions[selected_key[0]], sessions[selected_key[1]]);
+                } else {
+                    comparisons.emplace_back(
+                        selected_key[0], selected_key[1], 
+                        comparisons.size(),
                         sessions[selected_key[0]], sessions[selected_key[1]]);
-            } else {
-                comparisons.emplace_back(
-                    selected_key[0], selected_key[1], 
-                    comparisons.size(),
-                    sessions[selected_key[0]], sessions[selected_key[1]]);
+                }
+                show_pre_new_comparison = false;
             }
-            show_pre_new_comparison = false;
         }
+        ImGui::EndDisabled();
 
         ImGui::End();
     } else {
