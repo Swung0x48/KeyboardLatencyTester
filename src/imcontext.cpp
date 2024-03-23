@@ -227,7 +227,7 @@ bool imcontext::update() {
                 const ImPlotRect rect = ImPlot::GetPlotLimits(ImAxis_X1, ImAxis_Y1);
                 double xmin = std::numeric_limits<double>::min();
                 double xmax = std::numeric_limits<double>::max();
-                ImGui::BeginTooltip();
+                //ImGui::BeginTooltip();
                 for (auto& [key, session]: sessions) {
                     const auto next_idx = session->find_by_x(
                         (int64_t)point.x * 1e6, display_type_t::Released);
@@ -245,40 +245,30 @@ bool imcontext::update() {
                         xmin = std::max(xmin, ts0 * 1e-6);
                     }
 
-                    ImGui::Text("last %lld, next %lld, min %.2lf, max %.2lf", 
-                                last_idx, next_idx, xmin, xmax);
+                    /*ImGui::Text("last %lld, next %lld, min %.2lf, max %.2lf", 
+                                last_idx, next_idx, xmin, xmax);*/
                 }
-                ImGui::EndTooltip();
+                //ImGui::EndTooltip();
 
                 // Skip if on left or right edges
                 // or even not on mouse pos
                 if (xmin >= rect.X.Min && xmax <= rect.X.Max) {
-                    static double x_data[6];
-                    static double y_data[6];
+                    double x_data[8] = {
+                        xmin, xmin, xmin, xmin,
+                        xmax, xmax, xmax, xmax
+                    };
+                    double y_data[8] = {
+                        point.y, rect.Y.Max, rect.Y.Min, point.y,
+                        point.y, rect.Y.Max, rect.Y.Min, point.y
+                    };
+
+                    ImPlot::PlotLine("##Hover", x_data, y_data, 8);
+
                     ImGui::BeginTooltip();
                     {
-                        ImGui::Text("dT = %.2lfms", x_data[3] - x_data[2]);
+                        ImGui::Text("dT = %.2lfms", xmax - xmin);
                     }
                     ImGui::EndTooltip();
-                    
-                    // Horizontal Line
-                    x_data[2] = xmin;
-                    x_data[3] = xmax;
-                    y_data[2] = point.y;
-                    y_data[3] = point.y;
-
-                    // Vert Left
-                    x_data[0] = xmin;
-                    x_data[1] = xmin;
-                    y_data[0] = rect.Y.Min;
-                    y_data[1] = rect.Y.Max;
-
-                    // Vert Right
-                    x_data[4] = xmax;
-                    x_data[5] = xmax;
-                    y_data[4] = rect.Y.Min;
-                    y_data[5] = rect.Y.Max;
-                    ImPlot::PlotLine("##Hover", x_data, y_data, 6);
                 }
             }
             ImPlot::EndPlot();
