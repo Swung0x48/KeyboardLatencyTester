@@ -43,6 +43,16 @@ private:
     std::shared_ptr<session_t> session0_;
     std::shared_ptr<session_t> session1_;
     int offset_ = 0;
+    
+    display_type_t display_type_[2] = {
+        display_type_t::PressedAndReleased, 
+        display_type_t::PressedAndReleased
+    };
+    const std::unordered_map<display_type_t, std::string> display_type_name = {
+            { display_type_t::Pressed, "Press only" },
+            { display_type_t::Released, "Release only" },
+            { display_type_t::PressedAndReleased, "Press+Release" }
+    };
 };
 
 #endif // COMPONENT_COMPARISON_HPP

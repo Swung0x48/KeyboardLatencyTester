@@ -24,8 +24,8 @@ struct record_t {
 
 enum class display_type_t: uint32_t {
     Pressed = 1,
-    Released = 1 << 2,
-    PressedAndReleased = 1 | (1 << 2)
+    Released = 1 << 1,
+    PressedAndReleased = 1 | (1 << 1)
 };
 
 #ifdef IMGUI_DISABLE_OBSOLETE_KEYIO

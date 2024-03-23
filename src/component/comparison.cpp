@@ -15,6 +15,8 @@ bool comparison_t::process() {
     if (!active_)
         return false;
 
+    ImGui::ShowDemoWindow();
+
     {
         ImGui::Begin(title_.c_str(), &active_);
         
@@ -28,6 +30,28 @@ bool comparison_t::process() {
                     "the (n+1)st of data on the right.\n"
                     "The comparison range will be automatically clamped to\n"
                     "valid range for both side of the comparison.");
+
+            if (ImGui::BeginCombo("L", display_type_name.at(display_type_[0]).c_str())) {
+                for (const auto& [type, name]: display_type_name) {
+                    bool is_selected = (type == display_type_[0]);
+                    if (ImGui::Selectable(name.c_str(), is_selected))
+                        display_type_[0] = type;
+                    if (is_selected)
+                        ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+
+            if (ImGui::BeginCombo("R", display_type_name.at(display_type_[1]).c_str())) {
+                for (const auto& [type, name]: display_type_name) {
+                    bool is_selected = (type == display_type_[1]);
+                    if (ImGui::Selectable(name.c_str(), is_selected))
+                        display_type_[1] = type;
+                    if (is_selected)
+                        ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
         }
 
         if (ImGui::BeginTable(title_.c_str(), 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
@@ -36,7 +60,7 @@ bool comparison_t::process() {
             ImGui::TableSetupColumn("R");
             ImGui::TableSetupColumn("t(L)-t(R)");
             ImGui::TableHeadersRow();
-
+            
             ptrdiff_t s0min = 0, s0max = session0_->get_data_point_count();
             ptrdiff_t s1min = 0, s1max = session1_->get_data_point_count();
 
@@ -52,11 +76,20 @@ bool comparison_t::process() {
             for (ptrdiff_t i = 0; i < tmax - tmin; ++i) {
                 const auto i0 = i + s0min;
                 const auto i1 = i + s1min;
-
-                ImGui::TableNextRow();
                 const auto& record0 = session0_->get_data_point(i0);
                 const auto& record1 = session1_->get_data_point(i1);
 
+                if ((record0.type == keypress_type_t::Press && 
+                    display_type_[0] == display_type_t::Released) ||
+                    (record0.type == keypress_type_t::Release && 
+                    display_type_[1] == display_type_t::Pressed) ||
+                    (record1.type == keypress_type_t::Press && 
+                    display_type_[1] == display_type_t::Released) ||
+                    (record1.type == keypress_type_t::Release && 
+                    display_type_[1] == display_type_t::Pressed))
+                    continue;
+
+                ImGui::TableNextRow();
                 std::string str0(ImGui::GetKeyName(key0_));
                 std::string str1(ImGui::GetKeyName(key1_));
 
